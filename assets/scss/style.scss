@@ -1,0 +1,165 @@
+/**
+ * Cycling Adventures Blog Styles
+ * Main stylesheet for the Kirby CMS cycling blog
+ */
+
+// Tailwind CSS base, components, and utilities
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// Custom base styles
+@layer base {
+  body {
+    @apply antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold;
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl;
+  }
+
+  h3 {
+    @apply text-2xl md:text-3xl;
+  }
+}
+
+// Custom components
+@layer components {
+  // Adventure card on homepage
+  .adventure-card {
+    @apply bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300;
+  }
+
+  .adventure-card-image {
+    @apply w-full h-64 object-cover;
+  }
+
+  .adventure-card-content {
+    @apply p-6;
+  }
+
+  .adventure-card-title {
+    @apply text-2xl font-bold mb-2 text-gray-900 hover:text-ride-primary transition-colors;
+  }
+
+  .adventure-card-meta {
+    @apply flex flex-wrap gap-4 text-sm text-gray-600 mb-4;
+  }
+
+  .adventure-card-description {
+    @apply text-gray-700 line-clamp-3;
+  }
+
+  // Ride statistics (inspired by Strava/Komoot)
+  .ride-stats {
+    @apply grid grid-cols-2 md:grid-cols-5 gap-4 bg-gray-50 rounded-lg p-6 mb-8;
+  }
+
+  .ride-stat {
+    @apply text-center;
+  }
+
+  .ride-stat-value {
+    @apply text-2xl md:text-3xl font-bold text-gray-900 block;
+  }
+
+  .ride-stat-label {
+    @apply text-xs md:text-sm text-gray-600 uppercase tracking-wide mt-1 block;
+  }
+
+  // Map container
+  .map-container {
+    @apply w-full h-96 md:h-[500px] rounded-lg overflow-hidden shadow-lg mb-8;
+  }
+
+  // Photo gallery
+  .photo-gallery {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8;
+  }
+
+  .photo-gallery-item {
+    @apply relative overflow-hidden rounded-lg cursor-pointer hover:opacity-90 transition-opacity;
+  }
+
+  .photo-gallery-image {
+    @apply w-full h-64 object-cover;
+  }
+
+  // Pagination
+  .pagination {
+    @apply flex justify-center gap-2 mt-12;
+  }
+
+  .pagination-link {
+    @apply px-4 py-2 rounded-md bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors;
+  }
+
+  .pagination-link.is-active {
+    @apply bg-ride-primary text-white border-ride-primary;
+  }
+
+  // Content blocks (for flexible layout)
+  .content-block {
+    @apply mb-8;
+  }
+
+  .content-block-text {
+    @apply prose prose-lg max-w-none;
+
+    p {
+      @apply mb-4;
+    }
+
+    a {
+      @apply text-ride-primary hover:underline;
+    }
+  }
+}
+
+// Custom utilities
+@layer utilities {
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+// Leaflet map customizations
+.leaflet-container {
+  font-family: inherit;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 0.5rem;
+}
+
+.custom-marker {
+  background-color: theme('colors.ride-primary');
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+// Photo marker popup
+.photo-marker-popup {
+  .leaflet-popup-content {
+    margin: 0;
+    padding: 0;
+
+    img {
+      display: block;
+      max-width: 200px;
+      border-radius: 0.5rem;
+    }
+  }
+}

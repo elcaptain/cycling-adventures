@@ -1,0 +1,26 @@
+{
+  "name": "cycling-adventures-blog",
+  "version": "1.0.0",
+  "description": "A Kirby CMS blog for cycling adventures with GPX tracks and interactive maps",
+  "scripts": {
+    "dev": "npm run build:css -- --watch",
+    "build": "npm run build:css",
+    "build:css": "sass --no-source-map assets/scss/style.scss assets/css/style-temp.css && tailwindcss -i assets/css/style-temp.css -o assets/css/style.css --minify && rm assets/css/style-temp.css",
+    "watch:css": "sass --watch assets/scss/style.scss:assets/css/style.css"
+  },
+  "keywords": [
+    "kirby",
+    "cycling",
+    "blog",
+    "gpx",
+    "maps"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "autoprefixer": "^10.4.17",
+    "postcss": "^8.4.33",
+    "sass": "^1.70.0",
+    "tailwindcss": "^3.4.1"
+  }
+}

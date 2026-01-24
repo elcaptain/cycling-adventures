@@ -1,0 +1,70 @@
+# System files
+# ------------
+
+Icon
+.DS_Store
+
+# Temporary files
+# ---------------
+
+/media/*
+!/media/index.html
+
+# Lock files
+# ---------------
+
+.lock
+
+# Editors
+# (sensitive workspace files)
+# ---------------------------
+*.sublime-workspace
+/.vscode
+/.idea
+
+# -------------SECURITY-------------
+# NEVER publish these files via Git!
+# -------------SECURITY-------------
+
+# Cache Files
+# ---------------
+
+/site/cache/*
+!/site/cache/index.html
+
+# Accounts
+# ---------------
+
+/site/accounts/*
+!/site/accounts/index.html
+
+# Sessions
+# ---------------
+
+/site/sessions/*
+!/site/sessions/index.html
+
+# License
+# ---------------
+
+/site/config/.license
+
+# Content
+# ---------------
+# Content files are managed via the Kirby Panel and deployed via FTP
+# If you want to version control your content, remove these lines
+
+/content/*
+!/content/index.html
+
+# Node modules and build files
+# ---------------
+
+node_modules/
+package-lock.json
+
+# Built assets (compiled locally, deployed via FTP)
+# ---------------
+
+/assets/css/style.css
+/assets/css/style.css.map

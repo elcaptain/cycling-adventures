@@ -1,0 +1,34 @@
+title: Home
+icon: home
+
+# Only one homepage allowed
+maxChildren: 0
+
+# Add child pages (adventures will be in a separate adventures parent page)
+options:
+  changeSlug: false
+  changeStatus: false
+  changeTemplate: false
+  delete: false
+
+fields:
+  title:
+    label: Site Title
+    type: text
+    required: true
+
+  headline:
+    label: Homepage Headline
+    type: text
+    placeholder: "My Cycling Adventures"
+
+  intro:
+    label: Introduction Text
+    type: textarea
+    maxlength: 500
+    help: Brief introduction shown on the homepage
+
+  info:
+    label: Info
+    type: info
+    text: Adventures are managed in the "Adventures" section. This page displays them automatically.

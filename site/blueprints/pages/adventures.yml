@@ -1,0 +1,20 @@
+title: Adventures
+icon: 🗺️
+
+# This page contains all adventure posts
+options:
+  changeSlug: false
+  changeStatus: false
+  changeTemplate: false
+  delete: false
+
+# Child pages (individual adventures)
+children:
+  template: adventure
+  sortBy: date desc
+
+fields:
+  info:
+    label: Info
+    type: info
+    text: This page automatically lists all your cycling adventures. Add new adventures using the "+ Add" button below.
