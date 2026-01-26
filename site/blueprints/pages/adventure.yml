@@ -33,104 +33,100 @@ fields:
     help: Brief summary shown in the adventure list (max 300 characters)
     required: true
 
-  # GPX Track
-  gpxSection:
+  # GPX Track Section
+  gpxHeading:
     label: GPX Track
-    type: fields
-    fields:
-      gpxfile:
-        label: GPX File
-        type: files
-        max: 1
-        accept:
-          - application/gpx+xml
-          - text/xml
-        help: Upload your GPX track file. Statistics will be extracted automatically.
-        query: page.files.filterBy('extension', 'in', ['gpx'])
+    type: headline
+    numbered: false
 
-  # Ride Statistics
-  # These can be auto-filled from GPX or manually entered
-  statsSection:
+  gpxfile:
+    label: GPX File
+    type: files
+    max: 1
+    template: gpx
+    help: Upload your GPX track file. Statistics will be extracted automatically.
+
+  # Ride Statistics Section
+  statsHeading:
     label: Ride Statistics
-    type: fields
-    fields:
-      statsInfo:
-        label: Info
-        type: info
-        text: These statistics can be extracted from the GPX file or entered manually
+    type: headline
+    numbered: false
 
-      duration:
-        label: Total Duration
-        type: text
-        width: 1/2
-        help: Format as "2h 30m" or "02:30:00"
-        placeholder: "2h 30m"
+  statsInfo:
+    label: Info
+    type: info
+    text: These statistics can be extracted from the GPX file or entered manually
 
-      movingtime:
-        label: Time in Motion
-        type: text
-        width: 1/2
-        help: Format as "2h 15m" or "02:15:00"
-        placeholder: "2h 15m"
+  duration:
+    label: Total Duration
+    type: text
+    width: 1/2
+    help: Format as "2h 30m" or "02:30:00"
+    placeholder: "2h 30m"
 
-      distance:
-        label: Distance (km)
-        type: number
-        step: 0.1
-        width: 1/3
-        placeholder: "45.5"
+  movingtime:
+    label: Time in Motion
+    type: text
+    width: 1/2
+    help: Format as "2h 15m" or "02:15:00"
+    placeholder: "2h 15m"
 
-      elevation:
-        label: Elevation Gain (m)
-        type: number
-        step: 1
-        width: 1/3
-        placeholder: "650"
+  distance:
+    label: Distance (km)
+    type: number
+    step: 0.1
+    width: 1/3
+    placeholder: "45.5"
 
-      avgspeed:
-        label: Average Speed (km/h)
-        type: number
-        step: 0.1
-        width: 1/3
-        placeholder: "18.5"
+  elevation:
+    label: Elevation Gain (m)
+    type: number
+    step: 1
+    width: 1/3
+    placeholder: "650"
 
-  # Photos
-  photosSection:
+  avgspeed:
+    label: Average Speed (km/h)
+    type: number
+    step: 0.1
+    width: 1/3
+    placeholder: "18.5"
+
+  # Photos Section
+  photosHeading:
     label: Photos
-    type: fields
-    fields:
-      photos:
-        label: Photos
-        type: files
-        layout: cards
-        size: small
-        image:
-          ratio: 3/2
-          cover: true
-        help: Upload photos from your adventure. EXIF data will be used to place them on the map.
+    type: headline
+    numbered: false
 
-  # Flexible Content Layout
-  contentSection:
+  photos:
+    label: Photos
+    type: files
+    layout: cards
+    size: small
+    image:
+      ratio: 3/2
+      cover: true
+    help: Upload photos from your adventure. EXIF data will be used to place them on the map.
+
+  # Flexible Content Layout Section
+  contentHeading:
     label: Story & Content
-    type: fields
-    fields:
-      layout:
-        label: Content Layout
-        type: blocks
-        fieldsets:
-          - heading
-          - text
-          - image
-          - gallery
-        help: Arrange text and photos to tell your adventure story
+    type: headline
+    numbered: false
+
+  layout:
+    label: Content Layout
+    type: blocks
+    fieldsets:
+      - heading
+      - text
+      - image
+      - gallery
+    help: Arrange text and photos to tell your adventure story
 
 # Sidebar
 sidebar:
-  info:
-    label: Preview
-    type: fields
-    fields:
-      preview:
-        label: Cover Image
-        type: info
-        text: The first photo will be used as the cover image in the adventure list
+  preview:
+    label: Cover Image
+    type: info
+    text: The first photo will be used as the cover image in the adventure list

@@ -6,8 +6,21 @@
  * This is the main configuration file for your Kirby site.
  * Adjust these settings as needed for your deployment.
  */
-
 return [
+'hooks' => [
+        'file.create:before' => function ($file, $upload) {
+            // If it's a GPX file, we skip Kirby's internal mime check
+            if ($upload->extension() === 'gpx') {
+                return; // Allow the upload to proceed
+            }
+        }
+    ],
+    'components' => [
+        'file::type' => function ($kirby, $extension) {
+            if ($extension === 'gpx') return 'document';
+            return $kirby->nativeComponent('file::type')($kirby, $extension);
+        }
+    ],
     // Enable debug mode during development
     // Set to false in production!
     'debug' => true,
@@ -28,6 +41,7 @@ return [
 
     // Image handling
     'thumbs' => [
+        'driver' => 'gd',
         'srcsets' => [
             'default' => [
                 '400w' => ['width' => 400, 'quality' => 80],
@@ -59,11 +73,42 @@ return [
         ]
     ],
 
-    // File upload settings
-    'api' => [
-        'allowInsecure' => false,
-        'basicAuth' => false
+    // File upload settings - allow insecure for development
+    // 'api' => [
+    //     'allowInsecure' => true,
+    //     'basicAuth' => false
+    // ],
+    // 'mime' => [
+    //     'gpx' => 'application/gpx+xml'
+    // ],
+    // 'validations' => [
+    //     'files' => [
+    //         'extension' => [
+    //             'gpx'
+    //         ]
+    //     ]
+    // ],
+    'components' => [
+        'file::version' => function ($kirby, $file, $options) {
+            return $file->url();
+        },
+        // This is the specific hook to bypass validation
+        'file::type' => function ($kirby, $extension) {
+            if ($extension === 'gpx') {
+                return 'document';
+            }
+            return $kirby->nativeComponent('file::type')($kirby, $extension);
+        },
     ],
+    'fileTypes' => [
+        'gpx' => [
+            'mime' => 'application/gpx+xml',
+            'type' => 'document',
+        ],
+    'panel' => [
+        'debug' => true
+    ]
+  ],
 
     // Languages (currently single language)
     'languages' => false,

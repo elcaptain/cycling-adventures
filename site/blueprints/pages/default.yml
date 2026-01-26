@@ -19,3 +19,5 @@ columns:
       files:
         type: files
 
+files:
+  template: gpx
