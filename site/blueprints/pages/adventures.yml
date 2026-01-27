@@ -9,12 +9,11 @@ options:
   delete: false
 
 # Child pages (individual adventures)
-children:
-  template: adventure
-  sortBy: date desc
-
-fields:
-  info:
-    label: Info
-    type: info
-    text: This page automatically lists all your cycling adventures. Add new adventures using the "+ Add" button below.
+# Use `pages` so the Panel lists subpages (Kirby expects `pages` in blueprints)
+sections:
+  pages:
+    template: adventure
+    sortBy: date desc
+    create: true
+    status: all
+    label: adventures
