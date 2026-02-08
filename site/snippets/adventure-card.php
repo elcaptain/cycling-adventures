@@ -43,22 +43,30 @@
             </span>
 
             <!-- Distance -->
-            <?php if ($adventure->distance()->isNotEmpty()): ?>
+            <?php
+                $gpx = $adventure->gpxData();
+                $gpxStats = $gpx ? $gpx['stats'] : null;
+                $adistance = $gpxStats['distance'] ?? ($adventure->distance()->isNotEmpty() ? $adventure->distance() : null);
+            ?>
+            <?php if ($adistance): ?>
             <span class="flex items-center gap-1">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
                 </svg>
-                <?= $adventure->distance() ?> km
+                <?= $adistance ?> km
             </span>
             <?php endif ?>
 
             <!-- Elevation -->
-            <?php if ($adventure->elevation()->isNotEmpty()): ?>
+            <?php
+                $aelev = $gpxStats['elevation_gain'] ?? ($adventure->elevation()->isNotEmpty() ? $adventure->elevation() : null);
+            ?>
+            <?php if ($aelev): ?>
             <span class="flex items-center gap-1">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
                 </svg>
-                <?= $adventure->elevation() ?> m
+                <?= $aelev ?> m
             </span>
             <?php endif ?>
         </div>
