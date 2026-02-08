@@ -168,6 +168,8 @@ foreach ($folders as $folder) {
                     }
                 }
                 echo "  - Loaded metadata entries: " . count($metaMap) . " from " . basename($jsonPath) . "\n";
+                // also copy the original JSON into the page folder so the plugin can read it directly
+                @copy($jsonPath, $newFolder . DIRECTORY_SEPARATOR . basename($jsonPath));
             } else {
                 echo "  - Warning: failed to parse JSON metadata: " . basename($jsonPath) . "\n";
             }
@@ -200,6 +202,8 @@ foreach ($folders as $folder) {
             @file_put_contents($metaFile, $contents);
         }
 
+        // write gpxfile and photos fields into the content file later so the Panel will pre-select them
+
         // read comments.txt
         $comments = '';
         $commentsPath = $folder . DIRECTORY_SEPARATOR . 'comments.txt';
@@ -212,7 +216,23 @@ foreach ($folders as $folder) {
 
         // create content file (adventure.txt)
         $contentFile = $newFolder . DIRECTORY_SEPARATOR . 'adventure.txt';
-        $layoutBlock = '';
+
+        $content = "Title: " . $title . "\n\n----\n\n";
+        $content .= "Date: " . $date . "\n\n----\n\n";
+
+        // Attach GPX filename so the Panel pre-selects the GPX file
+        $content .= "gpxfile: " . $gpxBasename . "\n\n----\n\n";
+
+        // Attach photos list so the Panel pre-selects uploaded images
+        if (!empty($copied)) {
+            $content .= "photos:" . "\n";
+            foreach ($copied as $imgName) {
+                $content .= "- " . $imgName . "\n";
+            }
+            $content .= "\n----\n\n";
+        }
+
+        // Add Story & Content layout only if comments.txt exists
         if ($comments !== '') {
             // indent carefully to match existing Layout format
             $commentEscaped = str_replace("\r\n", "\n", $comments);
@@ -221,15 +241,9 @@ foreach ($folders as $folder) {
             foreach ($commentLines as $line) {
                 $quoted .= "      " . rtrim($line) . "\n";
             }
-
-            $layoutBlock = "Layout:\n-\n  type: text\n  content:\n    text: >\n" . $quoted . "\n----\n\n";
-        } else {
-            $layoutBlock = "Layout:\n-\n  type: text\n  content:\n    text: >\n      (Imported content)\n\n----\n\n";
+            $content .= "Layout:\n-\n  type: text\n  content:\n    text: >\n" . $quoted . "\n----\n\n";
         }
 
-        $content = "Title: " . $title . "\n\n----\n\n";
-        $content .= "Date: " . $date . "\n\n----\n\n";
-        $content .= $layoutBlock;
         $content .= "Uuid: import-" . uniqid() . "\n";
 
         if (file_put_contents($contentFile, $content) === false) {
