@@ -11,9 +11,9 @@ options:
 # Child pages (individual adventures)
 # Use `pages` so the Panel lists subpages (Kirby expects `pages` in blueprints)
 sections:
-  pages:
+  adventures:
+    type: pages
     template: adventure
     sortBy: date desc
-    create: true
     status: all
     label: adventures

@@ -77,22 +77,31 @@ foreach ($folders as $folder) {
         }
         $gpxPath = $gpxFiles[0];
 
-        // parse GPX to get <name> and optional time
+        // parse GPX to get track <name> and date from first trackpoint time
         $gpx = @simplexml_load_file($gpxPath);
         $title = null;
         $date = date('Y-m-d');
         if ($gpx !== false) {
-            $names = $gpx->xpath('//name');
+            // Register GPX namespace for XPath
+            $gpx->registerXPathNamespace('gpx', 'http://www.topografix.com/GPX/1/1');
+            
+            // Try to get track name (with or without namespace)
+            $names = $gpx->xpath('//gpx:trk/gpx:name');
+            if (empty($names)) {
+                $names = $gpx->xpath('//trk/name');
+            }
             if (!empty($names)) {
-                foreach ($names as $n) {
-                    $val = trim((string)$n);
-                    if ($val !== '') {
-                        $title = $val;
-                        break;
-                    }
+                $val = trim((string)$names[0]);
+                if ($val !== '') {
+                    $title = $val;
                 }
             }
-            $times = $gpx->xpath('//time');
+            
+            // Get date from first trackpoint time (with or without namespace)
+            $times = $gpx->xpath('//gpx:trk/gpx:trkseg/gpx:trkpt/gpx:time');
+            if (empty($times)) {
+                $times = $gpx->xpath('//trk/trkseg/trkpt/time');
+            }
             if (!empty($times)) {
                 $t = trim((string)$times[0]);
                 if ($t !== '') {
@@ -220,7 +229,6 @@ foreach ($folders as $folder) {
 
         $content = "Title: " . $title . "\n\n----\n\n";
         $content .= "Date: " . $date . "\n\n----\n\n";
-        $content .= "Description: Imported by import-adventures.php from source folder " . basename($folder) . "\n\n----\n\n";
         $content .= $layoutBlock;
         $content .= "Uuid: import-" . uniqid() . "\n";
 

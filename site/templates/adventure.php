@@ -204,5 +204,4 @@ $matchedPhotos = $page->matchedPhotos();
     </div>
 </div>
 <?php endif ?>
-
 <?php snippet('footer') ?>

@@ -31,7 +31,6 @@ fields:
     type: textarea
     maxlength: 300
     help: Brief summary shown in the adventure list (max 300 characters)
-    required: true
 
   # GPX Track Section
   gpxHeading:

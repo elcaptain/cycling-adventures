@@ -36,16 +36,60 @@ Kirby::plugin('cycling/adventure-helpers', [
             foreach ($photos as $photo) {
                 $exif = getPhotoExif($photo->root());
 
+                $timestamp = null;
+                $lat = null;
+                $lon = null;
+
                 if ($exif) {
-                    $photoData[] = [
-                        'file' => $photo,
-                        'url' => $photo->url(),
-                        'thumb' => $photo->resize(400)->url(),
-                        'timestamp' => $exif['timestamp'],
-                        'lat' => $exif['lat'],
-                        'lon' => $exif['lon']
-                    ];
+                    $timestamp = $exif['timestamp'] ?? null;
+                    $lat = $exif['lat'] ?? null;
+                    $lon = $exif['lon'] ?? null;
                 }
+
+                // Fallback: if EXIF missing or incomplete, try Kirby file fields (sidecar) like `latitude()`/`longitude()` and `created()`
+                if (!$timestamp) {
+                    try {
+                        $c = $photo->created();
+                        if (!empty($c)) {
+                            $ts = is_object($c) && method_exists($c, 'toDateTime') ? $c->toDateTime()->getTimestamp() : @strtotime((string)$c);
+                            if ($ts !== false) $timestamp = $ts;
+                        }
+                    } catch (Throwable $e) {
+                        // created() may not exist or is empty
+                    }
+                }
+
+                if (!$lat) {
+                    try {
+                        $latVal = $photo->latitude();
+                        if (!empty($latVal)) {
+                            $lat = floatval((string)$latVal);
+                        }
+                    } catch (Throwable $e) {
+                        // latitude() may not exist
+                    }
+                }
+
+                if (!$lon) {
+                    try {
+                        $lonVal = $photo->longitude();
+                        if (!empty($lonVal)) {
+                            $lon = floatval((string)$lonVal);
+                        }
+                    } catch (Throwable $e) {
+                        // longitude() may not exist
+                    }
+                }
+
+                // Include all photos; matchPhotosToTrack will try all matching sources (EXIF, sidecar, JSON, timestamps)
+                $photoData[] = [
+                    'file' => $photo,
+                    'url' => $photo->url(),
+                    'thumb' => $photo->resize(400)->url(),
+                    'timestamp' => $timestamp,
+                    'lat' => $lat,
+                    'lon' => $lon
+                ];
             }
 
             return $photoData;
@@ -268,37 +312,110 @@ function gpsToDecimal($coordinate) {
  */
 function matchPhotosToTrack($photos, $trackpoints) {
     $matched = [];
+    // Try to load external images metadata (images_metadata.json) from the page folder
+    $externalMetaMap = [];
+    if (!empty($photos)) {
+        $firstFile = $photos[0]['file'] ?? null;
+        if ($firstFile && method_exists($firstFile, 'page')) {
+            $page = $firstFile->page();
+            $pageRoot = $page ? $page->root() : null;
+
+            // look for well-known filenames in the page folder
+            if ($pageRoot) {
+                $candidates = ['images_metadata.json', 'images-metadata.json', 'images.json', 'images_meta.json'];
+                foreach ($candidates as $candidate) {
+                    $path = $pageRoot . DIRECTORY_SEPARATOR . $candidate;
+                    if (is_file($path)) {
+                        $jc = @file_get_contents($path);
+                        $arr = @json_decode($jc, true);
+                        if (is_array($arr)) {
+                            foreach ($arr as $item) {
+                                if (!empty($item['filename'])) {
+                                    $externalMetaMap[$item['filename']] = $item;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Fallback: check attached JSON files on the page
+            if (empty($externalMetaMap) && $page) {
+                foreach ($page->files()->filterBy('extension', 'json') as $jf) {
+                    $jc = @file_get_contents($jf->root());
+                    $arr = @json_decode($jc, true);
+                    if (is_array($arr)) {
+                        foreach ($arr as $item) {
+                            if (!empty($item['filename'])) {
+                                $externalMetaMap[$item['filename']] = $item;
+                            }
+                        }
+                        if (!empty($externalMetaMap)) break;
+                    }
+                }
+            }
+        }
+    }
 
     foreach ($photos as $photo) {
         // If photo already has GPS coordinates from EXIF, use those
-        if ($photo['lat'] && $photo['lon']) {
+        if (!empty($photo['lat']) && !empty($photo['lon'])) {
             $matched[] = $photo;
             continue;
         }
 
-        // Otherwise, try to match based on timestamp
-        if (!$photo['timestamp']) {
+        $file = $photo['file'] ?? null;
+
+        // 1) Try file-sidecar fields (image meta text via Kirby) for Latitude/Longitude
+        if ($file) {
+            try {
+                $fLat = $file->latitude();
+                $fLon = $file->longitude();
+                if (!empty($fLat) && !empty($fLon)) {
+                    $photo['lat'] = floatval((string)$fLat);
+                    $photo['lon'] = floatval((string)$fLon);
+                    $matched[] = $photo;
+                    continue;
+                }
+            } catch (Throwable $e) {
+                // latitude() or longitude() may not be set on this file
+            }
+        }
+
+        // 2) Try page-level external JSON metadata map (images_metadata.json)
+        if ($file) {
+            $fname = $file->filename();
+            if (isset($externalMetaMap[$fname])) {
+                $item = $externalMetaMap[$fname];
+                $plat = $item['lat'] ?? ($item['latitude'] ?? null);
+                $plng = $item['lng'] ?? ($item['lon'] ?? ($item['longitude'] ?? null));
+                if ($plat !== null && $plng !== null) {
+                    $photo['lat'] = floatval($plat);
+                    $photo['lon'] = floatval($plng);
+                    $matched[] = $photo;
+                    continue;
+                }
+            }
+        }
+
+        // 3) Otherwise, try to match based on timestamp to trackpoints
+        if (empty($photo['timestamp'])) {
             continue;
         }
 
-        // Find closest track point by timestamp
         $closestPoint = null;
         $minDiff = PHP_INT_MAX;
 
         foreach ($trackpoints as $point) {
-            if (!$point['time']) {
-                continue;
-            }
-
+            if (empty($point['time'])) continue;
             $diff = abs($photo['timestamp'] - $point['time']);
-
             if ($diff < $minDiff) {
                 $minDiff = $diff;
                 $closestPoint = $point;
             }
         }
 
-        // Only match if within 5 minutes
         if ($closestPoint && $minDiff < 300) {
             $photo['lat'] = $closestPoint['lat'];
             $photo['lon'] = $closestPoint['lon'];
