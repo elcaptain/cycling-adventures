@@ -122,6 +122,17 @@
       @apply text-ride-primary hover:underline;
     }
   }
+
+  // Elevation profile chart
+  .elevation-profile-container {
+    @apply bg-white rounded-lg shadow-md p-6;
+    position: relative;
+    height: 300px; // Fixed height for consistent display
+
+    canvas {
+      max-height: 100%;
+    }
+  }
 }
 
 // Custom utilities

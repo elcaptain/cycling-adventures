@@ -18,6 +18,34 @@ $trackpoints = $gpxData ? $gpxData['trackpoints'] : [];
 
 // Get photos with GPS coordinates
 $matchedPhotos = $page->matchedPhotos();
+
+// Process elevation profile data
+$elevationProfile = [];
+$cumulativeDistance = 0;
+
+if (!empty($trackpoints)) {
+    $lastPoint = null;
+    foreach ($trackpoints as $point) {
+        if ($point['elevation'] !== null) {
+            if ($lastPoint !== null) {
+                // Calculate distance from last point using Haversine formula
+                $earthRadius = 6371; // km
+                $dLat = deg2rad($point['lat'] - $lastPoint['lat']);
+                $dLon = deg2rad($point['lon'] - $lastPoint['lon']);
+                $a = sin($dLat / 2) * sin($dLat / 2) +
+                     cos(deg2rad($lastPoint['lat'])) * cos(deg2rad($point['lat'])) *
+                     sin($dLon / 2) * sin($dLon / 2);
+                $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+                $cumulativeDistance += $earthRadius * $c;
+            }
+            $elevationProfile[] = [
+                'distance' => round($cumulativeDistance, 2),
+                'elevation' => round($point['elevation'], 1)
+            ];
+            $lastPoint = $point;
+        }
+    }
+}
 ?>
 
 <!-- Adventure Header -->
@@ -199,6 +227,23 @@ $matchedPhotos = $page->matchedPhotos();
             <?php endif ?>
         </div>
     <?php endforeach ?>
+</div>
+<?php endif ?>
+
+<!-- Elevation Profile -->
+<?php if (!empty($elevationProfile) && count($elevationProfile) > 0): ?>
+<?php if ($page->layoutStyle()->toBool() === true): ?>
+<div class="mb-12">
+<?php else: ?>
+<div class="max-w-4xl mx-auto mb-12">
+<?php endif ?>
+    <h2 class="text-3xl font-bold mb-6">Elevation Profile</h2>
+    <div class="elevation-profile-container">
+        <canvas
+            id="elevation-chart"
+            data-elevation-profile="<?= esc(json_encode($elevationProfile), 'attr') ?>"
+        ></canvas>
+    </div>
 </div>
 <?php endif ?>
 
