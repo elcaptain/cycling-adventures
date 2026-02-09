@@ -80,17 +80,17 @@
     @apply w-full h-96 md:h-[500px] rounded-lg overflow-hidden shadow-lg mb-8;
   }
 
-  // Photo gallery
+  // Photo gallery - one image per row
   .photo-gallery {
-    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8;
+    @apply flex flex-col gap-6 mb-8;
   }
 
   .photo-gallery-item {
-    @apply relative overflow-hidden rounded-lg cursor-pointer hover:opacity-90 transition-opacity;
+    @apply relative overflow-hidden rounded-lg cursor-pointer hover:opacity-95 transition-opacity;
   }
 
   .photo-gallery-image {
-    @apply w-full h-64 object-cover;
+    @apply w-full h-auto object-cover;
   }
 
   // Pagination
@@ -132,6 +132,40 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+}
+
+// Two-column adventure layout
+.adventure-two-column {
+  @apply grid grid-cols-1 gap-8 max-w-7xl mx-auto px-4;
+
+  @screen md {
+    @apply grid-cols-2;
+  }
+}
+
+.adventure-left-column {
+  @apply col-span-1;
+  // No overflow or max-height - page scrolls naturally
+}
+
+.adventure-right-column {
+  @apply col-span-1;
+  // Container for sticky map
+}
+
+.map-sticky-wrapper {
+  @apply sticky;
+  top: 1rem; // Small gap from top of viewport
+  height: calc(100vh - 2rem); // Account for top gap
+  z-index: 10;
+}
+
+.map-sticky {
+  height: 100%;
+  width: 100%;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
 // Leaflet map customizations

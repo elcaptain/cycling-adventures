@@ -6,6 +6,7 @@
  * - Ride statistics
  * - Interactive map with GPX track and photo markers
  * - Flexible content layout
+ * - Two layout options: single-column or two-column with sticky map
  */
 
 snippet('header');
@@ -20,7 +21,11 @@ $matchedPhotos = $page->matchedPhotos();
 ?>
 
 <!-- Adventure Header -->
+<?php if ($page->layoutStyle()->toBool() === true): ?>
+<div class="max-w-7xl mx-auto mb-12 px-4">
+<?php else: ?>
 <div class="max-w-4xl mx-auto mb-12">
+<?php endif ?>
     <div class="mb-4">
         <a href="<?= $site->url() ?>" class="text-ride-primary hover:underline">
             &larr; Back to all adventures
@@ -116,21 +121,32 @@ $matchedPhotos = $page->matchedPhotos();
 </div>
 <?php endif ?>
 
-<!-- Interactive Map -->
-<?php if (!empty($trackpoints)): ?>
-<div class="max-w-6xl mx-auto">
-    <div
-        id="adventure-map"
-        class="map-container"
-        data-trackpoints="<?= esc(json_encode($trackpoints), 'attr') ?>"
-        data-photos="<?= esc(json_encode($matchedPhotos), 'attr') ?>"
-    ></div>
-</div>
+<!-- Two-Column Layout Start -->
+<?php if ($page->layoutStyle()->toBool() === true): ?>
+<div class="adventure-two-column">
+    <!-- Left Column: Content -->
+    <div class="adventure-left-column">
+<?php else: ?>
+    <!-- Single Column: Map First -->
+    <?php if (!empty($trackpoints)): ?>
+    <div class="max-w-6xl mx-auto mb-12">
+        <div
+            id="adventure-map"
+            class="map-container"
+            data-trackpoints="<?= esc(json_encode($trackpoints), 'attr') ?>"
+            data-photos="<?= esc(json_encode($matchedPhotos), 'attr') ?>"
+        ></div>
+    </div>
+    <?php endif ?>
 <?php endif ?>
 
 <!-- Content Layout (Flexible Blocks) -->
 <?php if ($page->layout()->isNotEmpty()): ?>
+<?php if ($page->layoutStyle()->toBool() === true): ?>
+<div>
+<?php else: ?>
 <div class="max-w-4xl mx-auto">
+<?php endif ?>
     <?php foreach ($page->layout()->toBlocks() as $block): ?>
         <div class="content-block">
             <?php if ($block->type() == 'heading'): ?>
@@ -187,8 +203,8 @@ $matchedPhotos = $page->matchedPhotos();
 <?php endif ?>
 
 <!-- Photo Gallery (if no layout blocks, show all images) -->
-<?php if ($page->layout()->isEmpty() && $page->images()->count() > 0): ?>
-<div class="max-w-6xl mx-auto mt-12">
+
+<div class="mt-12">
     <h2 class="text-3xl font-bold mb-8">Photos</h2>
     <div class="photo-gallery">
         <?php foreach ($page->images() as $image): ?>
@@ -203,5 +219,22 @@ $matchedPhotos = $page->matchedPhotos();
         <?php endforeach ?>
     </div>
 </div>
+
+
+<?php if ($page->layoutStyle()->toBool() === true): ?>
+    </div><!-- end left column -->
+    <!-- Right Column: Sticky Map -->
+    <div class="adventure-right-column">
+        <div class="map-sticky-wrapper">
+            <div
+                id="adventure-map"
+                class="map-container map-sticky"
+                data-trackpoints="<?= esc(json_encode($trackpoints), 'attr') ?>"
+                data-photos="<?= esc(json_encode($matchedPhotos), 'attr') ?>"
+            ></div>
+        </div>
+    </div><!-- end right column -->
+</div><!-- end two-column layout -->
 <?php endif ?>
+
 <?php snippet('footer') ?>

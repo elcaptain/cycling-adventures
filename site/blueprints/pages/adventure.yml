@@ -32,6 +32,15 @@ fields:
     maxlength: 300
     help: Brief summary shown in the adventure list (max 300 characters)
 
+  # Layout Style
+  layoutStyle:
+    label: Page Layout
+    type: toggle
+    text:
+      - Single Column
+      - Two Column with Sticky Map
+    width: 1/3
+
   # GPX Track Section
   gpxHeading:
     label: GPX Track
