@@ -3,34 +3,47 @@
  *
  * Initializes Leaflet map with GPX tracks and photo markers.
  * Supports multiple tracks (one per day for bikepacking trips).
- * Hovering a track dispatches a 'trackHighlight' event for cross-highlighting
- * with the elevation profile chart.
+ *
+ * Events dispatched on document:
+ *   trackHighlight  { trackIndex: number|null }         — track line hover (consumed by elevation-profile.js)
+ *   elevationHover  { trackIndex: number|null,
+ *                     pointIndex: number|null }         — mousemove on track (consumed by elevation-profile.js)
+ *
+ * Events listened to:
+ *   mapHover        { trackIndex: number|null,
+ *                     pointIndex: number|null }         — chart hover (fired by elevation-profile.js)
  */
 
 (function() {
     'use strict';
+
+    // Module-level state shared between drawTracks and the mapHover listener
+    var _map    = null;
+    var _tracks = null;
+    var _hoverMarker = null;
+    var _suppressElevationHover = false;
 
     document.addEventListener('DOMContentLoaded', function() {
         initializeAdventureMap();
     });
 
     function initializeAdventureMap() {
-        const mapContainer = document.getElementById('adventure-map');
+        var mapContainer = document.getElementById('adventure-map');
 
         if (!mapContainer) {
             return;
         }
 
-        const tracksData = mapContainer.getAttribute('data-tracks');
-        const photosData = mapContainer.getAttribute('data-photos');
+        var tracksData = mapContainer.getAttribute('data-tracks');
+        var photosData = mapContainer.getAttribute('data-photos');
 
         if (!tracksData) {
             console.warn('No tracks data found');
             return;
         }
 
-        let tracks = [];
-        let photos = [];
+        var tracks = [];
+        var photos = [];
 
         try {
             tracks = JSON.parse(tracksData);
@@ -46,7 +59,7 @@
             return;
         }
 
-        const map = L.map('adventure-map');
+        var map = L.map('adventure-map');
 
         L.tileLayer('https://api.maptiler.com/maps/landscape-v4/{z}/{x}/{y}.png?key=sNKRl7DPdDNCUS9KExvS', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -61,16 +74,77 @@
         }
 
         fitMapToTracks(map, tracks);
+
+        // Store references for use in the mapHover listener below
+        _map    = map;
+        _tracks = tracks;
+
+        // Hover circle marker — created once, added/removed on demand
+        _hoverMarker = L.circleMarker([0, 0], {
+            radius: 7,
+            color: '#ffffff',
+            weight: 2,
+            fillColor: '#ffffff',
+            fillOpacity: 0.9,
+            interactive: false,   // never intercepts mouse events from the polyline below
+            pane: 'markerPane'    // above the overlay pane where polylines live
+        });
+
+        // Listen for elevation profile hover → place circle on corresponding map position
+        document.addEventListener('mapHover', function(e) {
+            _suppressElevationHover = true;
+            var d = e.detail;
+
+            if (!d || d.trackIndex === null) {
+                if (_hoverMarker && _map.hasLayer(_hoverMarker)) {
+                    _map.removeLayer(_hoverMarker);
+                }
+                _suppressElevationHover = false;
+                return;
+            }
+
+            var track = null;
+            for (var i = 0; i < _tracks.length; i++) {
+                if (_tracks[i].index === d.trackIndex) { track = _tracks[i]; break; }
+            }
+            if (!track) { _suppressElevationHover = false; return; }
+
+            var tp = track.trackpoints[d.pointIndex];
+            if (!tp) { _suppressElevationHover = false; return; }
+
+            _hoverMarker.setLatLng([tp.lat, tp.lon]);
+            _hoverMarker.setStyle({ fillColor: track.color });
+            if (!_map.hasLayer(_hoverMarker)) _hoverMarker.addTo(_map);
+
+            _suppressElevationHover = false;
+        });
+    }
+
+    /**
+     * Find the index of the trackpoint in trackpoints[] closest to latlng,
+     * using projected pixel coordinates for fast comparison.
+     */
+    function findNearestPointOnTrack(trackpoints, latlng) {
+        var minDist = Infinity;
+        var bestIdx = -1;
+        var zoom   = _map.getZoom();
+        var cursor = _map.project(latlng, zoom);
+        trackpoints.forEach(function(tp, i) {
+            var pt = _map.project(L.latLng(tp.lat, tp.lon), zoom);
+            var d  = (cursor.x - pt.x) * (cursor.x - pt.x) + (cursor.y - pt.y) * (cursor.y - pt.y);
+            if (d < minDist) { minDist = d; bestIdx = i; }
+        });
+        return bestIdx;
     }
 
     /**
      * Draw all GPX tracks on the map.
      * Each track gets a white outline + coloured inner polyline.
-     * Hovering thickens the line and dispatches a trackHighlight event.
+     * Hovering thickens the line (trackHighlight) and tracks the cursor position (elevationHover).
      */
     function drawTracks(map, tracks) {
         tracks.forEach(function(track) {
-            const latLngs = track.trackpoints.map(function(p) {
+            var latLngs = track.trackpoints.map(function(p) {
                 return [p.lat, p.lon];
             });
 
@@ -83,7 +157,7 @@
             }).addTo(map);
 
             // Coloured inner line
-            const line = L.polyline(latLngs, {
+            var line = L.polyline(latLngs, {
                 color: track.color,
                 weight: 4,
                 opacity: 1,
@@ -99,25 +173,44 @@
 
             line.on('mouseout', function() {
                 this.setStyle({ weight: 4 });
+                if (_map && _hoverMarker && _map.hasLayer(_hoverMarker)) {
+                    _map.removeLayer(_hoverMarker);
+                }
                 document.dispatchEvent(new CustomEvent('trackHighlight', {
                     detail: { trackIndex: null }
+                }));
+                document.dispatchEvent(new CustomEvent('elevationHover', {
+                    detail: { trackIndex: null, pointIndex: null }
+                }));
+            });
+
+            line.on('mousemove', function(e) {
+                if (_suppressElevationHover) return;
+                var idx = findNearestPointOnTrack(track.trackpoints, e.latlng);
+                if (idx < 0) return;
+                var tp = track.trackpoints[idx];
+                _hoverMarker.setLatLng([tp.lat, tp.lon]);
+                _hoverMarker.setStyle({ fillColor: track.color });
+                if (!_map.hasLayer(_hoverMarker)) _hoverMarker.addTo(_map);
+                document.dispatchEvent(new CustomEvent('elevationHover', {
+                    detail: { trackIndex: track.index, pointIndex: idx }
                 }));
             });
         });
 
         // Start marker on first point of first track, finish on last point of last track
-        const firstTrack = tracks[0];
-        const lastTrack  = tracks[tracks.length - 1];
+        var firstTrack = tracks[0];
+        var lastTrack  = tracks[tracks.length - 1];
 
         if (firstTrack.trackpoints.length > 0) {
-            const sp = firstTrack.trackpoints[0];
+            var sp = firstTrack.trackpoints[0];
             L.marker([sp.lat, sp.lon], { icon: createCustomIcon('🚴', 'bg-green-500') })
              .addTo(map)
              .bindPopup('<strong>Start</strong>');
         }
 
         if (lastTrack.trackpoints.length > 0) {
-            const ep = lastTrack.trackpoints[lastTrack.trackpoints.length - 1];
+            var ep = lastTrack.trackpoints[lastTrack.trackpoints.length - 1];
             L.marker([ep.lat, ep.lon], { icon: createCustomIcon('🏁', 'bg-red-500') })
              .addTo(map)
              .bindPopup('<strong>Finish</strong>');
@@ -133,19 +226,11 @@
                 return;
             }
 
-            const marker = L.marker([photo.lat, photo.lon], {
+            var marker = L.marker([photo.lat, photo.lon], {
                 icon: createCustomIcon('📷', 'white')
             }).addTo(map);
 
-            const popupContent = `
-                <div class="photo-marker-popup">
-                    <img
-                        src="${photo.thumb}"
-                        alt="Photo ${index + 1}"
-                        style="max-width: 200px; display: block; border-radius: 8px;"
-                    />
-                </div>
-            `;
+            var popupContent = '<div class="photo-marker-popup"><img src="' + photo.thumb + '" alt="Photo ' + (index + 1) + '" style="max-width: 200px; display: block; border-radius: 8px;" /></div>';
 
             marker.bindPopup(popupContent, {
                 maxWidth: 220,
@@ -154,26 +239,26 @@
             });
 
             marker.on('popupopen', function(e) {
-                const img = e.popup.getElement().querySelector('img');
+                var img = e.popup.getElement().querySelector('img');
                 if (img) {
-                    if (!img.complete) img.addEventListener('load', () => e.popup.update());
+                    if (!img.complete) img.addEventListener('load', function() { e.popup.update(); });
                     else e.popup.update();
                 }
             });
 
-            const photoKey = basename(photo.url);
+            var photoKey = basename(photo.url);
             marker.photoKey = photoKey;
             photoMarkerIndex.set(photoKey, marker);
         });
     }
 
     // Map of filename -> Leaflet marker for content-image hover sync
-    const photoMarkerIndex = new Map();
+    var photoMarkerIndex = new Map();
 
     function basename(urlOrName) {
         if (!urlOrName) return '';
         try {
-            const u = new URL(urlOrName, window.location.origin);
+            var u = new URL(urlOrName, window.location.origin);
             return u.pathname.split('/').pop();
         } catch (e) {
             return urlOrName.split('/').pop();
@@ -181,32 +266,32 @@
     }
 
     function bindContentImageHover() {
-        const imgs = document.querySelectorAll('.content-block img[data-photo-filename], .photo-gallery-image[data-photo-filename]');
+        var imgs = document.querySelectorAll('.content-block img[data-photo-filename], .photo-gallery-image[data-photo-filename]');
         imgs.forEach(function(img) {
-            const imgKey = basename(img.dataset.photoFilename || img.getAttribute('src'));
-            let openTimeout;
+            var imgKey = basename(img.dataset.photoFilename || img.getAttribute('src'));
+            var openTimeout;
 
             img.addEventListener('mouseenter', function() {
-                const marker = photoMarkerIndex.get(imgKey);
+                var marker = photoMarkerIndex.get(imgKey);
                 if (marker) {
-                    openTimeout = setTimeout(() => marker.openPopup(), 60);
+                    openTimeout = setTimeout(function() { marker.openPopup(); }, 60);
                 }
             });
             img.addEventListener('mouseleave', function() {
                 clearTimeout(openTimeout);
-                const marker = photoMarkerIndex.get(imgKey);
+                var marker = photoMarkerIndex.get(imgKey);
                 if (marker) marker.closePopup();
             });
             img.addEventListener('focus', function() {
-                const marker = photoMarkerIndex.get(imgKey);
+                var marker = photoMarkerIndex.get(imgKey);
                 if (marker) marker.openPopup();
             });
             img.addEventListener('blur', function() {
-                const marker = photoMarkerIndex.get(imgKey);
+                var marker = photoMarkerIndex.get(imgKey);
                 if (marker) marker.closePopup();
             });
             img.addEventListener('click', function(e) {
-                const marker = photoMarkerIndex.get(imgKey);
+                var marker = photoMarkerIndex.get(imgKey);
                 if (marker) {
                     if (marker.isPopupOpen && marker.isPopupOpen()) marker.closePopup();
                     else marker.openPopup();
@@ -218,11 +303,7 @@
 
     function createCustomIcon(emoji, bgColor) {
         return L.divIcon({
-            html: `
-                <div class="flex items-center justify-center w-8 h-8 ${bgColor} text-white rounded-full shadow-lg text-lg">
-                    ${emoji}
-                </div>
-            `,
+            html: '<div class="flex items-center justify-center w-8 h-8 ' + bgColor + ' text-white rounded-full shadow-lg text-lg">' + emoji + '</div>',
             className: 'custom-marker',
             iconSize: [32, 32],
             iconAnchor: [16, 16],
@@ -231,7 +312,7 @@
     }
 
     function fitMapToTracks(map, tracks) {
-        const allPoints = [];
+        var allPoints = [];
         tracks.forEach(function(track) {
             track.trackpoints.forEach(function(p) {
                 allPoints.push([p.lat, p.lon]);

@@ -25,9 +25,11 @@ $cumulativeDistance = 0;
 $lastPoint = null;
 
 foreach ($tracks as $track) {
+    $pointIdx = 0;
     foreach ($track['trackpoints'] as $point) {
         if ($point['elevation'] === null) {
             $lastPoint = $point;
+            $pointIdx++;
             continue;
         }
         if ($lastPoint !== null) {
@@ -42,8 +44,10 @@ foreach ($tracks as $track) {
             'distance'   => round($cumulativeDistance, 2),
             'elevation'  => round($point['elevation'], 1),
             'trackIndex' => $track['index'],
+            'pointIndex' => $pointIdx,
         ];
         $lastPoint = $point;
+        $pointIdx++;
     }
 }
 ?>
