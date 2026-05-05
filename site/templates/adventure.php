@@ -240,13 +240,9 @@ foreach ($tracks as $track) {
 </div>
 <?php endif ?>
 
-<!-- Elevation Profile -->
-<?php if (!empty($elevationProfile) && count($elevationProfile) > 0): ?>
-<?php if ($page->layoutStyle()->toBool() === true): ?>
-<div class="mb-12">
-<?php else: ?>
+<!-- Elevation Profile (single-column layout only; two-column renders it in the right column) -->
+<?php if (!empty($elevationProfile) && !$page->layoutStyle()->toBool()): ?>
 <div class="max-w-4xl mx-auto mb-12">
-<?php endif ?>
     <h2 class="text-3xl font-bold mb-6">Elevation Profile</h2>
     <div class="elevation-profile-container">
         <canvas
@@ -278,7 +274,7 @@ foreach ($tracks as $track) {
 
 <?php if ($page->layoutStyle()->toBool() === true): ?>
     </div><!-- end left column -->
-    <!-- Right Column: Sticky Map -->
+    <!-- Right Column: Sticky Map + Elevation Profile -->
     <div class="adventure-right-column">
         <div class="map-sticky-wrapper">
             <div
@@ -287,6 +283,14 @@ foreach ($tracks as $track) {
                 data-tracks="<?= esc(json_encode($tracks), 'attr') ?>"
                 data-photos="<?= esc(json_encode($matchedPhotos), 'attr') ?>"
             ></div>
+            <?php if (!empty($elevationProfile)): ?>
+            <div class="elevation-profile-sidebar">
+                <canvas
+                    id="elevation-chart"
+                    data-elevation-profile="<?= esc(json_encode($elevationProfile), 'attr') ?>"
+                ></canvas>
+            </div>
+            <?php endif ?>
         </div>
     </div><!-- end right column -->
 </div><!-- end two-column layout -->

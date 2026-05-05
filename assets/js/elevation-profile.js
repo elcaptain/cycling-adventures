@@ -56,6 +56,8 @@
 
         var trackIndices = Object.keys(byTrack).map(Number).sort(function(a, b) { return a - b; });
         var isMultiTrack = trackIndices.length > 1;
+        // Exact total distance — last point has the highest cumulative distance
+        var maxDistance = elevationProfile[elevationProfile.length - 1].distance;
         var ctx = canvas.getContext('2d');
 
         // Build one Chart.js dataset per track
@@ -95,7 +97,7 @@
                 },
                 plugins: {
                     legend: {
-                        display: isMultiTrack
+                        display: false
                     },
                     tooltip: {
                         backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -115,6 +117,8 @@
                 scales: {
                     x: {
                         type: 'linear',
+                        min: 0,
+                        max: maxDistance,
                         title: {
                             display: true,
                             text: 'Distance (km)',

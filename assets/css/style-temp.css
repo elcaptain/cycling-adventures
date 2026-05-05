@@ -127,14 +127,32 @@
   top: 1rem;
   height: calc(100vh - 2rem);
   z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .map-sticky {
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   width: 100%;
   border-radius: 0.5rem;
   overflow: hidden;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.elevation-profile-sidebar {
+  flex-shrink: 0;
+  height: 185px;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  padding: 0.625rem 1rem 0.5rem;
+  position: relative;
+}
+.elevation-profile-sidebar canvas {
+  height: 100% !important;
+  width: 100% !important;
 }
 
 .leaflet-container {
