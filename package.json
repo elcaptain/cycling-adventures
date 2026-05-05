@@ -3,11 +3,10 @@
   "version": "1.0.0",
   "description": "A Kirby CMS blog for cycling adventures with GPX tracks and interactive maps",
   "scripts": {
-    "dev": "npm run build:css -- --watch",
-    "build": "npm run build:css",
-    "build:css": "sass --no-source-map assets/scss/style.scss assets/css/style-temp.css && tailwindcss -i assets/css/style-temp.css -o assets/css/style.css --minify ",
-    "watch:css": "sass --watch assets/scss/style.scss:assets/css/style.css"
-  },
+  "dev": "concurrently \"sass --no-source-map --watch assets/scss/style.scss assets/css/style-temp.css\" \"tailwindcss -i assets/css/style-temp.css -o assets/css/style.css --watch\"",
+  "build": "npm run build:css",
+  "build:css": "sass --no-source-map assets/scss/style.scss assets/css/style-temp.css && tailwindcss -i assets/css/style-temp.css -o assets/css/style.css --minify"
+},
   "keywords": [
     "kirby",
     "cycling",
@@ -21,6 +20,7 @@
     "@tailwindcss/typography": "^0.5.10",
     "autoprefixer": "^10.4.17",
     "chart.js": "^4.4.1",
+    "concurrently": "^9.2.1",
     "playwright": "^1.59.1",
     "postcss": "^8.4.33",
     "sass": "^1.70.0",
