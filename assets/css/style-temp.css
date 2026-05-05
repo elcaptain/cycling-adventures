@@ -1,0 +1,162 @@
+/**
+ * Cycling Adventures Blog Styles
+ * Main stylesheet for the Kirby CMS cycling blog
+ */
+@import 'leaflet/dist/leaflet.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@layer base {
+  body {
+    @apply antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold;
+  }
+  h1 {
+    @apply text-4xl md:text-5xl;
+  }
+  h2 {
+    @apply text-3xl md:text-4xl;
+  }
+  h3 {
+    @apply text-2xl md:text-3xl;
+  }
+}
+@layer components {
+  .adventure-card {
+    @apply bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300;
+  }
+  .adventure-card-image {
+    @apply w-full h-64 object-cover;
+  }
+  .adventure-card-content {
+    @apply p-6;
+  }
+  .adventure-card-title {
+    @apply text-2xl font-bold mb-2 text-gray-900 hover:text-ride-primary transition-colors;
+  }
+  .adventure-card-meta {
+    @apply flex flex-wrap gap-4 text-sm text-gray-600 mb-4;
+  }
+  .adventure-card-description {
+    @apply text-gray-700 line-clamp-3;
+  }
+  .ride-stats {
+    @apply grid grid-cols-2 md:grid-cols-5 gap-4 rounded-lg p-6 mb-8;
+  }
+  .ride-stat {
+    @apply text-center;
+  }
+  .ride-stat-value {
+    @apply text-2xl md:text-3xl font-bold text-gray-900 block;
+  }
+  .ride-stat-label {
+    @apply text-xs md:text-sm text-gray-600 uppercase tracking-wide mt-1 block;
+  }
+  .map-container {
+    @apply w-full h-96 md:h-[500px] rounded-lg overflow-hidden shadow-lg mb-8;
+  }
+  .photo-gallery {
+    @apply flex flex-row gap-3 mb-8;
+  }
+  .photo-gallery-item {
+    @apply relative overflow-hidden rounded-lg cursor-pointer;
+  }
+  .photo-gallery-image {
+    @apply w-full h-auto object-cover;
+  }
+  .pagination {
+    @apply flex justify-center gap-2 mt-12;
+  }
+  .pagination-link {
+    @apply px-4 py-2 rounded-md bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors;
+  }
+  .pagination-link.is-active {
+    @apply bg-ride-primary text-white border-ride-primary;
+  }
+  .content-block {
+    @apply mb-8;
+  }
+  .content-block-text {
+    @apply prose prose-lg max-w-none;
+  }
+  .content-block-text p {
+    @apply mb-4;
+  }
+  .content-block-text a {
+    @apply text-ride-primary hover:underline;
+  }
+  .elevation-profile-container {
+    @apply bg-white rounded-lg shadow-md p-6;
+    position: relative;
+    height: 300px;
+  }
+  .elevation-profile-container canvas {
+    max-height: 100%;
+  }
+}
+@layer utilities {
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+.adventure-two-column {
+  @apply grid grid-cols-1 gap-8 mx-auto px-4;
+  max-width: 90%;
+}
+@screen md {
+  .adventure-two-column {
+    @apply grid-cols-2;
+  }
+}
+
+.adventure-left-column {
+  @apply col-span-1;
+}
+
+.adventure-right-column {
+  @apply col-span-1;
+}
+
+.map-sticky-wrapper {
+  @apply sticky;
+  top: 1rem;
+  height: calc(100vh - 2rem);
+  z-index: 10;
+}
+
+.map-sticky {
+  height: 100%;
+  width: 100%;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.leaflet-container {
+  font-family: inherit;
+}
+
+.photo-popup .leaflet-popup-content-wrapper {
+  border-radius: 8px;
+}
+
+.custom-marker {
+  background-color: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.photo-marker-popup .leaflet-popup-content {
+  margin: 0 !important;
+  padding: 0;
+}
+.photo-marker-popup .leaflet-popup-content img {
+  display: block;
+  max-width: 200px;
+  border-radius: 0.5rem;
+}

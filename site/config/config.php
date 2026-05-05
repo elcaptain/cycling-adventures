@@ -26,7 +26,7 @@ return [
     'debug' => true,
 
     // Basic site settings
-    'url' => 'http://localhost:8000', // Change this to your production URL
+    'url' => 'http:/jonas.local:8000', // Change this to your production URL
 
     // Panel settings (admin interface)
     'panel' => [

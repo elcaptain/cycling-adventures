@@ -52,9 +52,9 @@
 
         // Add OpenStreetMap tile layer
         // Note: For production, consider using your own tile server or a paid service
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        L.tileLayer('https://api.maptiler.com/maps/landscape-v4/{z}/{x}/{y}.png?key=sNKRl7DPdDNCUS9KExvS', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: 18
+            maxZoom: 18,
         }).addTo(map);
 
         // Draw GPX track on map
@@ -65,6 +65,7 @@
         // Add photo markers to map
         if (photos && photos.length > 0) {
             addPhotoMarkers(map, photos);
+            bindContentImageHover();
         }
 
         // Fit map to show entire track
@@ -84,10 +85,16 @@
         });
 
         // Create polyline for the track
+        const trackOutLine = L.polyline(latLngs, {
+            color: '#ffffff', // ride-primary color
+            weight: 8,
+            opacity: 1,
+            smoothFactor: 1
+        }).addTo(map);
         const trackLine = L.polyline(latLngs, {
             color: '#2563eb', // ride-primary color
             weight: 4,
-            opacity: 0.8,
+            opacity: 1,
             smoothFactor: 1
         }).addTo(map);
 
@@ -124,7 +131,7 @@
 
             // Create marker for photo
             const marker = L.marker([photo.lat, photo.lon], {
-                icon: createCustomIcon('📷', 'bg-blue-500')
+                icon: createCustomIcon('📷', 'white')
             }).addTo(map);
 
             // Create popup with photo thumbnail
@@ -140,10 +147,79 @@
 
             marker.bindPopup(popupContent, {
                 maxWidth: 220,
+                minWidth: 200,
                 className: 'photo-popup'
             });
+            marker.on('popupopen', function(e) {
+                const img = e.popup.getElement().querySelector('img');
+                if (img) {
+                    if (!img.complete) img.addEventListener('load', () => e.popup.update());
+                else e.popup.update();
+                }
+            });
+            // In addPhotoMarkers, when creating each marker, register it:
+            // assume `photo` has `filename` or `thumb`/`url` values; pick a key:
+            const photoKey = basename(photo.url);
+            marker.photoKey = photoKey;
+            photoMarkerIndex.set(photoKey, marker);
         });
     }
+
+    // global map of key -> marker
+const photoMarkerIndex = new Map();
+
+// helper to normalise filename for matching (strip query params)
+function basename(urlOrName) {
+  if (!urlOrName) return '';
+  // if it's a full url, take last path segment
+  try {
+    const u = new URL(urlOrName, window.location.origin);
+    return u.pathname.split('/').pop();
+  } catch (e) {
+    return urlOrName.split('/').pop();
+  }
+}
+
+// After markers are created, bind hover handlers to content images:
+function bindContentImageHover() {
+  const imgs = document.querySelectorAll('.content-block img[data-photo-filename], .photo-gallery-image[data-photo-filename]');
+  imgs.forEach((img) => {
+    const imgKey = basename(img.dataset.photoFilename || img.getAttribute('src'));
+    let openTimeout;
+    img.addEventListener('mouseenter', () => {
+      const marker = photoMarkerIndex.get(imgKey);
+      if (marker) {
+        // optionally pan map to marker
+        // map.panTo(marker.getLatLng());
+        // small delay to avoid flicker
+        openTimeout = setTimeout(() => marker.openPopup(), 60);
+      }
+    });
+    img.addEventListener('mouseleave', () => {
+      clearTimeout(openTimeout);
+      const marker = photoMarkerIndex.get(imgKey);
+      if (marker) marker.closePopup();
+    });
+
+    // also support focus (keyboard) and touch/click fallback
+    img.addEventListener('focus', () => {
+      const marker = photoMarkerIndex.get(imgKey);
+      if (marker) marker.openPopup();
+    });
+    img.addEventListener('blur', () => {
+      const marker = photoMarkerIndex.get(imgKey);
+      if (marker) marker.closePopup();
+    });
+    img.addEventListener('click', (e) => {
+      // on touch devices, toggle popup
+      const marker = photoMarkerIndex.get(imgKey);
+      if (marker) {
+        if (marker.isPopupOpen && marker.isPopupOpen()) marker.closePopup(); else marker.openPopup();
+        e.preventDefault();
+      }
+    });
+  });
+}
 
     /**
      * Create a custom icon with emoji

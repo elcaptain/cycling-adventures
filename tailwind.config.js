@@ -6,6 +6,10 @@ module.exports = {
     "./assets/js/**/*.js",
   ],
   theme: {
+    container: {
+      center: true,
+      padding: '1rem',
+    },
     extend: {
       colors: {
         // Add custom colors inspired by cycling/outdoor themes

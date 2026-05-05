@@ -9,17 +9,17 @@
     <?php if ($page->description()->isNotEmpty()): ?>
     <meta name="description" content="<?= $page->description() ?>">
     <?php endif ?>
-
-    <!-- Styles -->
-    <link rel="stylesheet" href="<?= url('assets/css/style.css') ?>">
-
+    
     <!-- Leaflet CSS (for maps) -->
     <link rel="stylesheet" href="<?= url('assets/js/vendor/leaflet/leaflet.css') ?>">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="<?= url('assets/css/style.css') ?>">
 
     <!-- Favicon (optional - add your own) -->
     <!-- <link rel="icon" type="image/svg+xml" href="/favicon.svg"> -->
 </head>
-<body class="bg-gray-50 text-gray-900">
+<body class="text-gray-900">
 
     <!-- Header -->
     <header class="bg-white shadow-sm">
@@ -43,4 +43,4 @@
     </header>
 
     <!-- Main content -->
-    <main class="container mx-auto px-4 py-12">
+    <main class="mx-auto px-4 py-12">

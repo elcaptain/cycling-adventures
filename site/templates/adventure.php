@@ -197,7 +197,8 @@ if (!empty($trackpoints)) {
                             src="<?= $image->resize(1200)->url() ?>"
                             srcset="<?= $image->srcset([600, 900, 1200]) ?>"
                             alt="<?= $block->alt() ?>"
-                            class="w-full rounded-lg shadow-lg"
+                            class="w-full rounded-sm shadow-lg"
+                            data-photo-filename="<?= $image->filename() ?>"
                         >
                         <?php if ($block->caption()->isNotEmpty()): ?>
                             <figcaption class="text-sm text-gray-600 mt-2 text-center">
@@ -218,6 +219,7 @@ if (!empty($trackpoints)) {
                                     srcset="<?= $image->srcset([400, 600, 800]) ?>"
                                     alt="<?= $image->alt() ?>"
                                     class="photo-gallery-image"
+                                    data-photo-filename="<?= $image->filename() ?>"
                                 >
                             </div>
                         <?php endforeach ?>

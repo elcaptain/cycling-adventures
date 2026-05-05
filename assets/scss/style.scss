@@ -3,6 +3,8 @@
  * Main stylesheet for the Kirby CMS cycling blog
  */
 
+@import 'leaflet/dist/leaflet.css';
+
 // Tailwind CSS base, components, and utilities
 @tailwind base;
 @tailwind components;
@@ -60,7 +62,7 @@
 
   // Ride statistics (inspired by Strava/Komoot)
   .ride-stats {
-    @apply grid grid-cols-2 md:grid-cols-5 gap-4 bg-gray-50 rounded-lg p-6 mb-8;
+    @apply grid grid-cols-2 md:grid-cols-5 gap-4 rounded-lg p-6 mb-8;
   }
 
   .ride-stat {
@@ -80,13 +82,13 @@
     @apply w-full h-96 md:h-[500px] rounded-lg overflow-hidden shadow-lg mb-8;
   }
 
-  // Photo gallery - one image per row
+  // Photo gallery
   .photo-gallery {
-    @apply flex flex-col gap-6 mb-8;
+    @apply flex flex-row gap-3 mb-8;
   }
 
   .photo-gallery-item {
-    @apply relative overflow-hidden rounded-lg cursor-pointer hover:opacity-95 transition-opacity;
+    @apply relative overflow-hidden rounded-lg cursor-pointer;
   }
 
   .photo-gallery-image {
@@ -147,7 +149,8 @@
 
 // Two-column adventure layout
 .adventure-two-column {
-  @apply grid grid-cols-1 gap-8 max-w-7xl mx-auto px-4;
+  @apply grid grid-cols-1 gap-8 mx-auto px-4;
+  max-width: 90%;
 
   @screen md {
     @apply grid-cols-2;
@@ -184,13 +187,12 @@
   font-family: inherit;
 }
 
-.leaflet-popup-content-wrapper {
-  border-radius: 0.5rem;
+.photo-popup .leaflet-popup-content-wrapper {
+  border-radius: 8px;
 }
 
 .custom-marker {
-  background-color: theme('colors.ride-primary');
-  border: 2px solid white;
+  background-color: white;
   border-radius: 50%;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
@@ -198,7 +200,7 @@
 // Photo marker popup
 .photo-marker-popup {
   .leaflet-popup-content {
-    margin: 0;
+    margin: 0 !important; 
     padding: 0;
 
     img {
