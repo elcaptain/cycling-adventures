@@ -115,6 +115,8 @@
                 parsing: false,
                 responsive: true,
                 maintainAspectRatio: false,
+                borderCapStyle: 'round',
+                borderJoinStyle: 'round',
                 transitions: {
                     active: {
                         animation: { duration: 0 }
