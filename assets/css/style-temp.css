@@ -109,7 +109,7 @@
 }
 @screen md {
   .daystats-block {
-    @apply flex-row items-center gap-8;
+    @apply flex-col;
   }
 }
 
@@ -122,11 +122,29 @@
 }
 
 .daystats-stats .ride-stat-value {
-  @apply text-xl font-bold text-gray-900 block;
+  @apply text-base font-medium text-gray-600 block;
 }
 
-.daystats-stats .ride-stat-label {
-  @apply text-xs text-gray-500 uppercase tracking-wide mt-0.5 block;
+.ride-stat-value::before {
+  margin-right: 8px;
+  vertical-align: center;
+  display: inline-flex;
+}
+
+.ride-stat-value.distance::before {
+  content: url(/assets/icons/icon-step.svg);
+}
+
+.ride-stat-value.elevation::before {
+  content: url(/assets/icons/icon-elevation.svg);
+}
+
+.ride-stat-value.moving-time::before {
+  content: url(/assets/icons/icon-time.svg);
+}
+
+.ride-stat-value.speed::before {
+  content: url(/assets/icons/icon-speed.svg);
 }
 
 .adventure-two-column {

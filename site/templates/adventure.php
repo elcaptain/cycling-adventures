@@ -258,26 +258,22 @@ foreach ($tracks as $track) {
                     <div class="daystats-stats">
                         <?php if (isset($blockStats['distance'])): ?>
                         <div class="ride-stat">
-                            <span class="ride-stat-value"><?= $blockStats['distance'] ?></span>
-                            <span class="ride-stat-label">Distance (km)</span>
+                            <span class="ride-stat-value distance"><?= $blockStats['distance'] ?> km</span>
                         </div>
                         <?php endif ?>
                         <?php if (isset($blockStats['elevation_gain'])): ?>
                         <div class="ride-stat">
-                            <span class="ride-stat-value"><?= $blockStats['elevation_gain'] ?></span>
-                            <span class="ride-stat-label">Elevation (m)</span>
+                            <span class="ride-stat-value elevation"><?= $blockStats['elevation_gain'] ?> m</span>
                         </div>
                         <?php endif ?>
                         <?php if (isset($blockStats['moving_time_formatted'])): ?>
                         <div class="ride-stat">
-                            <span class="ride-stat-value"><?= $blockStats['moving_time_formatted'] ?></span>
-                            <span class="ride-stat-label">Moving Time</span>
+                            <span class="ride-stat-value moving-time"><?= $blockStats['moving_time_formatted'] ?></span>
                         </div>
                         <?php endif ?>
                         <?php if (isset($blockStats['avg_speed'])): ?>
                         <div class="ride-stat">
-                            <span class="ride-stat-value"><?= $blockStats['avg_speed'] ?></span>
-                            <span class="ride-stat-label">Avg Speed (km/h)</span>
+                            <span class="ride-stat-value speed"><?= $blockStats['avg_speed'] ?> km/h</span>
                         </div>
                         <?php endif ?>
                     </div>
