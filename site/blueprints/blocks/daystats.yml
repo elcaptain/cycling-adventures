@@ -1,5 +1,6 @@
 name: Day Stats
 icon: bar-chart
+preview: text
 fields:
   text:
     label: Headline
