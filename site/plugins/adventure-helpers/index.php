@@ -99,14 +99,82 @@ Kirby::plugin('cycling/adventure-helpers', [
          * Get matched photos (photos matched to GPX track points)
          */
         'matchedPhotos' => function() {
-            $gpxData = $this->gpxData();
+            $tracks = $this->gpxDataAll();
             $photos = $this->photosWithExif();
 
-            if (!$gpxData || empty($photos)) {
+            if (empty($tracks) || empty($photos)) {
                 return [];
             }
 
-            return matchPhotosToTrack($photos, $gpxData['trackpoints']);
+            $allTrackpoints = [];
+            foreach ($tracks as $track) {
+                foreach ($track['trackpoints'] as $tp) {
+                    $allTrackpoints[] = $tp;
+                }
+            }
+
+            return matchPhotosToTrack($photos, $allTrackpoints);
+        },
+
+        /**
+         * Get GPX data for all uploaded GPX files, one entry per file/day
+         */
+        'gpxDataAll' => function() {
+            $gpxFiles = $this->files()->filterBy('extension', 'gpx');
+            if ($gpxFiles->count() === 0) {
+                return [];
+            }
+            $colors = ['#2563eb', '#16a34a', '#d97706', '#7c3aed', '#e11d48'];
+            $tracks = [];
+            $index  = 0;
+            foreach ($gpxFiles as $gpxFile) {
+                $parsed = parseGPX($gpxFile->root());
+                if ($parsed) {
+                    $tracks[] = [
+                        'index'       => $index,
+                        'color'       => $colors[$index % count($colors)],
+                        'trackpoints' => $parsed['trackpoints'],
+                        'stats'       => $parsed['stats'],
+                        'bounds'      => $parsed['bounds'],
+                    ];
+                    $index++;
+                }
+            }
+            return $tracks;
+        },
+
+        /**
+         * Get aggregated ride statistics across all GPX files
+         */
+        'gpxAggregatedStats' => function() {
+            $tracks = $this->gpxDataAll();
+            if (empty($tracks)) {
+                return null;
+            }
+            $totalDistance   = 0;
+            $totalElevation  = 0;
+            $totalMovingTime = 0;
+            $totalDuration   = 0;
+            foreach ($tracks as $track) {
+                $s = $track['stats'];
+                $totalDistance   += $s['distance']      ?? 0;
+                $totalElevation  += $s['elevation_gain'] ?? 0;
+                $totalMovingTime += $s['moving_time']    ?? 0;
+                $totalDuration   += $s['duration']       ?? 0;
+            }
+            $avgSpeed = ($totalMovingTime > 0)
+                ? round($totalDistance / ($totalMovingTime / 3600), 1)
+                : null;
+            return [
+                'distance'              => round($totalDistance, 2),
+                'elevation_gain'        => round($totalElevation, 0),
+                'moving_time'           => $totalMovingTime,
+                'moving_time_formatted' => formatDuration($totalMovingTime),
+                'duration'              => $totalDuration,
+                'duration_formatted'    => formatDuration($totalDuration),
+                'avg_speed'             => $avgSpeed,
+                'days'                  => count($tracks),
+            ];
         }
     ]
 ]);

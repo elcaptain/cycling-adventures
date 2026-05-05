@@ -48,11 +48,10 @@ fields:
     numbered: false
 
   gpxfile:
-    label: GPX File
+    label: GPX Files
     type: files
-    max: 1
     template: gpx
-    help: Upload your GPX track file. Statistics will be extracted automatically.
+    help: Upload one GPX file per day. Statistics will be aggregated automatically.
 
   # Ride Statistics Section
   statsHeading:

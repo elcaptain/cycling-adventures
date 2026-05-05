@@ -12,38 +12,38 @@
 snippet('header');
 
 // Get GPX data
-$gpxData = $page->gpxData();
-$gpxStats = $gpxData ? $gpxData['stats'] : null;
-$trackpoints = $gpxData ? $gpxData['trackpoints'] : [];
+$gpxStats  = $page->gpxAggregatedStats();
+$tracks    = $page->gpxDataAll();
+$hasTracks = !empty($tracks);
 
 // Get photos with GPS coordinates
 $matchedPhotos = $page->matchedPhotos();
 
-// Process elevation profile data
+// Process elevation profile data (all tracks concatenated, cumulative distance, with trackIndex)
 $elevationProfile = [];
 $cumulativeDistance = 0;
+$lastPoint = null;
 
-if (!empty($trackpoints)) {
-    $lastPoint = null;
-    foreach ($trackpoints as $point) {
-        if ($point['elevation'] !== null) {
-            if ($lastPoint !== null) {
-                // Calculate distance from last point using Haversine formula
-                $earthRadius = 6371; // km
-                $dLat = deg2rad($point['lat'] - $lastPoint['lat']);
-                $dLon = deg2rad($point['lon'] - $lastPoint['lon']);
-                $a = sin($dLat / 2) * sin($dLat / 2) +
-                     cos(deg2rad($lastPoint['lat'])) * cos(deg2rad($point['lat'])) *
-                     sin($dLon / 2) * sin($dLon / 2);
-                $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-                $cumulativeDistance += $earthRadius * $c;
-            }
-            $elevationProfile[] = [
-                'distance' => round($cumulativeDistance, 2),
-                'elevation' => round($point['elevation'], 1)
-            ];
+foreach ($tracks as $track) {
+    foreach ($track['trackpoints'] as $point) {
+        if ($point['elevation'] === null) {
             $lastPoint = $point;
+            continue;
         }
+        if ($lastPoint !== null) {
+            $dLat = deg2rad($point['lat'] - $lastPoint['lat']);
+            $dLon = deg2rad($point['lon'] - $lastPoint['lon']);
+            $a = sin($dLat / 2) * sin($dLat / 2) +
+                 cos(deg2rad($lastPoint['lat'])) * cos(deg2rad($point['lat'])) *
+                 sin($dLon / 2) * sin($dLon / 2);
+            $cumulativeDistance += 6371 * 2 * atan2(sqrt($a), sqrt(1 - $a));
+        }
+        $elevationProfile[] = [
+            'distance'   => round($cumulativeDistance, 2),
+            'elevation'  => round($point['elevation'], 1),
+            'trackIndex' => $track['index'],
+        ];
+        $lastPoint = $point;
     }
 }
 ?>
@@ -81,6 +81,14 @@ if (!empty($trackpoints)) {
 <?php if ($gpxStats || $page->distance()->isNotEmpty()): ?>
 <div class="max-w-5xl mx-auto mb-12">
     <div class="ride-stats">
+        <!-- Days (multi-day trips only) -->
+        <?php if ($gpxStats && ($gpxStats['days'] ?? 1) > 1): ?>
+            <div class="ride-stat">
+                <span class="ride-stat-value"><?= $gpxStats['days'] ?></span>
+                <span class="ride-stat-label">Days</span>
+            </div>
+        <?php endif ?>
+
         <!-- Distance -->
         <?php if ($gpxStats && isset($gpxStats['distance'])): ?>
             <div class="ride-stat">
@@ -156,12 +164,12 @@ if (!empty($trackpoints)) {
     <div class="adventure-left-column">
 <?php else: ?>
     <!-- Single Column: Map First -->
-    <?php if (!empty($trackpoints)): ?>
+    <?php if ($hasTracks): ?>
     <div class="max-w-6xl mx-auto mb-12">
         <div
             id="adventure-map"
             class="map-container"
-            data-trackpoints="<?= esc(json_encode($trackpoints), 'attr') ?>"
+            data-tracks="<?= esc(json_encode($tracks), 'attr') ?>"
             data-photos="<?= esc(json_encode($matchedPhotos), 'attr') ?>"
         ></div>
     </div>
@@ -276,7 +284,7 @@ if (!empty($trackpoints)) {
             <div
                 id="adventure-map"
                 class="map-container map-sticky"
-                data-trackpoints="<?= esc(json_encode($trackpoints), 'attr') ?>"
+                data-tracks="<?= esc(json_encode($tracks), 'attr') ?>"
                 data-photos="<?= esc(json_encode($matchedPhotos), 'attr') ?>"
             ></div>
         </div>

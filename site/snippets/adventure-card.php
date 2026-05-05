@@ -42,11 +42,12 @@
                 <?= $adventure->date()->toDate('M j, Y') ?>
             </span>
 
-            <!-- Distance -->
+            <!-- Distance / Elevation / Days -->
             <?php
-                $gpx = $adventure->gpxData();
-                $gpxStats = $gpx ? $gpx['stats'] : null;
+                $gpxStats  = $adventure->gpxAggregatedStats();
                 $adistance = $gpxStats['distance'] ?? ($adventure->distance()->isNotEmpty() ? $adventure->distance() : null);
+                $aelev     = $gpxStats['elevation_gain'] ?? ($adventure->elevation()->isNotEmpty() ? $adventure->elevation() : null);
+                $adays     = $gpxStats['days'] ?? 1;
             ?>
             <?php if ($adistance): ?>
             <span class="flex items-center gap-1">
@@ -57,16 +58,21 @@
             </span>
             <?php endif ?>
 
-            <!-- Elevation -->
-            <?php
-                $aelev = $gpxStats['elevation_gain'] ?? ($adventure->elevation()->isNotEmpty() ? $adventure->elevation() : null);
-            ?>
             <?php if ($aelev): ?>
             <span class="flex items-center gap-1">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
                 </svg>
                 <?= $aelev ?> m
+            </span>
+            <?php endif ?>
+
+            <?php if ($adays > 1): ?>
+            <span class="flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <?= $adays ?> days
             </span>
             <?php endif ?>
         </div>
