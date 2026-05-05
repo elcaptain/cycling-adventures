@@ -238,6 +238,52 @@ foreach ($tracks as $track) {
                     </div>
                 <?php endif ?>
 
+            <?php elseif ($block->type() == 'daystats'): ?>
+                <!-- Day Stats Block -->
+                <?php
+                    $blockGpxFile = $block->gpxfile()->toFile();
+                    $blockGpxData = $blockGpxFile ? parseGPX($blockGpxFile->root()) : null;
+                    $blockStats   = $blockGpxData ? $blockGpxData['stats'] : null;
+                    $bLevel = in_array($block->level()->value(), ['h2', 'h3', 'h4'])
+                                ? $block->level()->value() : 'h2';
+                ?>
+                <div class="daystats-block">
+                    <?php if ($block->text()->isNotEmpty()): ?>
+                    <<?= $bLevel ?> class="daystats-heading">
+                        <?= $block->text() ?>
+                    </<?= $bLevel ?>>
+                    <?php endif ?>
+
+                    <?php if ($blockStats): ?>
+                    <div class="daystats-stats">
+                        <?php if (isset($blockStats['distance'])): ?>
+                        <div class="ride-stat">
+                            <span class="ride-stat-value"><?= $blockStats['distance'] ?></span>
+                            <span class="ride-stat-label">Distance (km)</span>
+                        </div>
+                        <?php endif ?>
+                        <?php if (isset($blockStats['elevation_gain'])): ?>
+                        <div class="ride-stat">
+                            <span class="ride-stat-value"><?= $blockStats['elevation_gain'] ?></span>
+                            <span class="ride-stat-label">Elevation (m)</span>
+                        </div>
+                        <?php endif ?>
+                        <?php if (isset($blockStats['moving_time_formatted'])): ?>
+                        <div class="ride-stat">
+                            <span class="ride-stat-value"><?= $blockStats['moving_time_formatted'] ?></span>
+                            <span class="ride-stat-label">Moving Time</span>
+                        </div>
+                        <?php endif ?>
+                        <?php if (isset($blockStats['avg_speed'])): ?>
+                        <div class="ride-stat">
+                            <span class="ride-stat-value"><?= $blockStats['avg_speed'] ?></span>
+                            <span class="ride-stat-label">Avg Speed (km/h)</span>
+                        </div>
+                        <?php endif ?>
+                    </div>
+                    <?php endif ?>
+                </div>
+
             <?php endif ?>
         </div>
     <?php endforeach ?>

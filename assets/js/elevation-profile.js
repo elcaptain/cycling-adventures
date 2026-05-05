@@ -147,14 +147,13 @@
                     tooltip: {
                         backgroundColor: 'rgba(0, 0, 0, 0.8)',
                         padding: 12,
-                        displayColors: isMultiTrack,
+                        displayColors: false,
                         callbacks: {
                             title: function(context) {
                                 return 'Distance: ' + context[0].parsed.x + ' km';
                             },
                             label: function(context) {
-                                var prefix = isMultiTrack ? 'Day ' + (context.datasetIndex + 1) + ': ' : '';
-                                return prefix + 'Elevation: ' + context.parsed.y + ' m';
+                                return 'Elevation: ' + context.parsed.y + ' m';
                             }
                         }
                     }

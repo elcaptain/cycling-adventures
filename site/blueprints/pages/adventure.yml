@@ -129,6 +129,7 @@ fields:
       - text
       - image
       - gallery
+      - daystats
     help: Arrange text and photos to tell your adventure story
 
 # Sidebar

@@ -1,0 +1,23 @@
+name: Day Stats
+icon: bar-chart
+fields:
+  text:
+    label: Headline
+    type: text
+    placeholder: "Day 1: Col de la Croix de Fer"
+
+  level:
+    label: Heading Level
+    type: select
+    default: h2
+    options:
+      h2: H2
+      h3: H3
+      h4: H4
+
+  gpxfile:
+    label: GPX File
+    type: files
+    max: 1
+    template: gpx
+    help: Select which day's GPX file to show stats from

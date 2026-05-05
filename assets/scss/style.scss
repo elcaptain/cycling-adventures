@@ -147,6 +147,31 @@
   }
 }
 
+// Day Stats block: headline + compact stats side by side
+.daystats-block {
+  @apply flex flex-col gap-3 mb-8;
+
+  @screen md {
+    @apply flex-row items-center gap-8;
+  }
+}
+
+.daystats-heading {
+  @apply text-3xl font-bold flex-shrink-0;
+}
+
+.daystats-stats {
+  @apply flex flex-wrap gap-6;
+}
+
+.daystats-stats .ride-stat-value {
+  @apply text-xl font-bold text-gray-900 block;
+}
+
+.daystats-stats .ride-stat-label {
+  @apply text-xs text-gray-500 uppercase tracking-wide mt-0.5 block;
+}
+
 // Two-column adventure layout
 .adventure-two-column {
   @apply grid grid-cols-1 gap-8 mx-auto px-4;
