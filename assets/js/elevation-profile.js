@@ -91,6 +91,11 @@
                 parsing: false,
                 responsive: true,
                 maintainAspectRatio: false,
+                transitions: {
+                    active: {
+                        animation: { duration: 0 }
+                    }
+                },
                 interaction: {
                     mode: 'nearest',
                     axis: 'x',
