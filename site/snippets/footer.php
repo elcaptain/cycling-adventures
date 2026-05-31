@@ -1,7 +1,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-900 text-gray-400 mt-24">
+    <footer class="bg-accent-900 text-accent-200 mt-24">
         <div class="container mx-auto px-4 py-8">
             <div class="text-center">
                 <p>&copy; <?= date('Y') ?> <?= $site->title() ?>. Built with Kirby CMS.</p>

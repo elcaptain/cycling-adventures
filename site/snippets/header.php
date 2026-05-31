@@ -12,27 +12,32 @@
     
     <!-- Leaflet CSS (for maps) -->
     <link rel="stylesheet" href="<?= url('assets/js/vendor/leaflet/leaflet.css') ?>">
-    
+
+    <!-- Fonts: Inter (body) + DynaPuff (display/headings) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DynaPuff:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <!-- Styles -->
     <link rel="stylesheet" href="<?= url('assets/css/style.css') ?>">
 
     <!-- Favicon (optional - add your own) -->
     <!-- <link rel="icon" type="image/svg+xml" href="/favicon.svg"> -->
 </head>
-<body class="text-gray-900">
+<body class="bg-accent-50 text-accent-900 font-sans">
 
     <!-- Header -->
     <header class="bg-white shadow-sm">
         <div class="container mx-auto px-4 py-6">
             <nav class="flex items-center justify-between">
-                <a href="<?= $site->url() ?>" class="text-2xl font-bold text-ride-primary hover:text-ride-secondary transition-colors">
+                <a href="<?= $site->url() ?>" class="font-display text-2xl font-bold text-accent-500 hover:text-accent-700 transition-colors no-underline">
                     <?= $site->title() ?>
                 </a>
 
                 <!-- Navigation -->
                 <ul class="flex gap-6">
                     <li>
-                        <a href="<?= $site->url() ?>" class="text-gray-700 hover:text-ride-primary transition-colors">
+                        <a href="<?= $site->url() ?>" class="text-accent-900 hover:text-accent-500 transition-colors no-underline">
                             Adventures
                         </a>
                     </li>

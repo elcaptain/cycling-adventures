@@ -88,73 +88,73 @@ foreach ($tracks as $track) {
         <!-- Days (multi-day trips only) -->
         <?php if ($gpxStats && ($gpxStats['days'] ?? 1) > 1): ?>
             <div class="ride-stat">
-                <span class="ride-stat-value"><?= $gpxStats['days'] ?></span>
                 <span class="ride-stat-label">Days</span>
+                <span class="ride-stat-value"><?= $gpxStats['days'] ?></span>
             </div>
         <?php endif ?>
 
         <!-- Distance -->
         <?php if ($gpxStats && isset($gpxStats['distance'])): ?>
             <div class="ride-stat">
-                <span class="ride-stat-value"><?= $gpxStats['distance'] ?></span>
-                <span class="ride-stat-label">Distance (km)</span>
+                <span class="ride-stat-label">Distance</span>
+                <span class="ride-stat-value"><?= $gpxStats['distance'] ?></span><span class="ride-stat-unit"> km</span>
             </div>
         <?php elseif ($page->distance()->isNotEmpty()): ?>
             <div class="ride-stat">
-                <span class="ride-stat-value"><?= $page->distance() ?></span>
-                <span class="ride-stat-label">Distance (km)</span>
+                <span class="ride-stat-label">Distance</span>
+                <span class="ride-stat-value"><?= $page->distance() ?></span><span class="ride-stat-unit"> km</span>
             </div>
         <?php endif ?>
 
         <!-- Elevation Gain -->
         <?php if ($gpxStats && isset($gpxStats['elevation_gain'])): ?>
             <div class="ride-stat">
-                <span class="ride-stat-value"><?= $gpxStats['elevation_gain'] ?></span>
-                <span class="ride-stat-label">Elevation (m)</span>
+                <span class="ride-stat-label">Elevation</span>
+                <span class="ride-stat-value"><?= $gpxStats['elevation_gain'] ?></span><span class="ride-stat-unit"> m</span>
             </div>
         <?php elseif ($page->elevation()->isNotEmpty()): ?>
             <div class="ride-stat">
-                <span class="ride-stat-value"><?= $page->elevation() ?></span>
-                <span class="ride-stat-label">Elevation (m)</span>
+                <span class="ride-stat-label">Elevation</span>
+                <span class="ride-stat-value"><?= $page->elevation() ?></span><span class="ride-stat-unit"> m</span>
             </div>
         <?php endif ?>
 
         <!-- Duration -->
         <?php if ($gpxStats && isset($gpxStats['duration_formatted'])): ?>
             <div class="ride-stat">
-                <span class="ride-stat-value"><?= $gpxStats['duration_formatted'] ?></span>
                 <span class="ride-stat-label">Duration</span>
+                <span class="ride-stat-value"><?= $gpxStats['duration_formatted'] ?></span>
             </div>
         <?php elseif ($page->duration()->isNotEmpty()): ?>
             <div class="ride-stat">
-                <span class="ride-stat-value"><?= $page->duration() ?></span>
                 <span class="ride-stat-label">Duration</span>
+                <span class="ride-stat-value"><?= $page->duration() ?></span>
             </div>
         <?php endif ?>
 
         <!-- Moving Time -->
         <?php if ($gpxStats && isset($gpxStats['moving_time_formatted'])): ?>
             <div class="ride-stat">
-                <span class="ride-stat-value"><?= $gpxStats['moving_time_formatted'] ?></span>
                 <span class="ride-stat-label">Moving Time</span>
+                <span class="ride-stat-value"><?= $gpxStats['moving_time_formatted'] ?></span>
             </div>
         <?php elseif ($page->movingtime()->isNotEmpty()): ?>
             <div class="ride-stat">
-                <span class="ride-stat-value"><?= $page->movingtime() ?></span>
                 <span class="ride-stat-label">Moving Time</span>
+                <span class="ride-stat-value"><?= $page->movingtime() ?></span>
             </div>
         <?php endif ?>
 
         <!-- Average Speed -->
         <?php if ($gpxStats && isset($gpxStats['avg_speed'])): ?>
             <div class="ride-stat">
-                <span class="ride-stat-value"><?= $gpxStats['avg_speed'] ?></span>
-                <span class="ride-stat-label">Avg Speed (km/h)</span>
+                <span class="ride-stat-label">Avg Speed</span>
+                <span class="ride-stat-value"><?= $gpxStats['avg_speed'] ?></span><span class="ride-stat-unit"> km/h</span>
             </div>
         <?php elseif ($page->avgspeed()->isNotEmpty()): ?>
             <div class="ride-stat">
-                <span class="ride-stat-value"><?= $page->avgspeed() ?></span>
-                <span class="ride-stat-label">Avg Speed (km/h)</span>
+                <span class="ride-stat-label">Avg Speed</span>
+                <span class="ride-stat-value"><?= $page->avgspeed() ?></span><span class="ride-stat-unit"> km/h</span>
             </div>
         <?php endif ?>
     </div>

@@ -204,14 +204,14 @@
 
         if (firstTrack.trackpoints.length > 0) {
             var sp = firstTrack.trackpoints[0];
-            L.marker([sp.lat, sp.lon], { icon: createCustomIcon('🚴', 'bg-green-500') })
+            L.marker([sp.lat, sp.lon], { icon: createSvgIcon('start') })
              .addTo(map)
              .bindPopup('<strong>Start</strong>');
         }
 
         if (lastTrack.trackpoints.length > 0) {
             var ep = lastTrack.trackpoints[lastTrack.trackpoints.length - 1];
-            L.marker([ep.lat, ep.lon], { icon: createCustomIcon('🏁', 'bg-red-500') })
+            L.marker([ep.lat, ep.lon], { icon: createSvgIcon('end') })
              .addTo(map)
              .bindPopup('<strong>Finish</strong>');
         }
@@ -227,7 +227,7 @@
             }
 
             var marker = L.marker([photo.lat, photo.lon], {
-                icon: createCustomIcon('📷', 'white')
+                icon: createSvgIcon('photo')
             }).addTo(map);
 
             var popupContent = '<div class="photo-marker-popup"><img src="' + photo.thumb + '" alt="Photo ' + (index + 1) + '" style="max-width: 200px; display: block; border-radius: 8px;" /></div>';
@@ -265,34 +265,85 @@
         }
     }
 
+    // Shared popup for hover-triggered previews: no close button, no auto-close
+    // shenanigans. Marker click still uses the bound popup (with close button).
+    var _hoverPopup = null;
+
+    function getHoverPopup() {
+        if (!_hoverPopup) {
+            _hoverPopup = L.popup({
+                closeButton: false,
+                autoClose: false,
+                closeOnClick: false,
+                maxWidth: 220,
+                minWidth: 200,
+                className: 'photo-popup photo-popup-hover'
+            });
+        }
+        return _hoverPopup;
+    }
+
+    function setMarkerActive(marker, active) {
+        if (!marker) return;
+        // Bring active marker above its neighbours so it isn't covered
+        marker.setZIndexOffset(active ? 1000 : 0);
+        var wrap = marker.getElement();
+        if (!wrap) return;
+        var pill = wrap.querySelector('.adventure-marker');
+        if (pill) pill.classList.toggle('is-active', active);
+    }
+
+    function openHoverPopupForMarker(marker) {
+        if (!marker || !_map) return;
+        var bound = marker.getPopup();
+        if (!bound) return;
+        var popup = getHoverPopup();
+        popup.setLatLng(marker.getLatLng())
+             .setContent(bound.getContent())
+             .openOn(_map);
+    }
+
+    function closeHoverPopup() {
+        if (_hoverPopup && _map && _map.hasLayer(_hoverPopup)) {
+            _map.closePopup(_hoverPopup);
+        }
+    }
+
     function bindContentImageHover() {
         var imgs = document.querySelectorAll('.content-block img[data-photo-filename], .photo-gallery-image[data-photo-filename]');
         imgs.forEach(function(img) {
             var imgKey = basename(img.dataset.photoFilename || img.getAttribute('src'));
             var openTimeout;
 
-            img.addEventListener('mouseenter', function() {
+            function activate() {
                 var marker = photoMarkerIndex.get(imgKey);
-                if (marker) {
-                    openTimeout = setTimeout(function() { marker.openPopup(); }, 60);
-                }
+                if (!marker) return;
+                setMarkerActive(marker, true);
+                openHoverPopupForMarker(marker);
+            }
+
+            function deactivate() {
+                var marker = photoMarkerIndex.get(imgKey);
+                if (!marker) return;
+                setMarkerActive(marker, false);
+                closeHoverPopup();
+            }
+
+            img.addEventListener('mouseenter', function() {
+                openTimeout = setTimeout(activate, 60);
             });
             img.addEventListener('mouseleave', function() {
                 clearTimeout(openTimeout);
-                var marker = photoMarkerIndex.get(imgKey);
-                if (marker) marker.closePopup();
+                deactivate();
             });
-            img.addEventListener('focus', function() {
-                var marker = photoMarkerIndex.get(imgKey);
-                if (marker) marker.openPopup();
-            });
-            img.addEventListener('blur', function() {
-                var marker = photoMarkerIndex.get(imgKey);
-                if (marker) marker.closePopup();
-            });
+            img.addEventListener('focus', activate);
+            img.addEventListener('blur', deactivate);
             img.addEventListener('click', function(e) {
                 var marker = photoMarkerIndex.get(imgKey);
                 if (marker) {
+                    // Click on a content image opens the bound popup (with close button)
+                    closeHoverPopup();
+                    setMarkerActive(marker, false);
                     if (marker.isPopupOpen && marker.isPopupOpen()) marker.closePopup();
                     else marker.openPopup();
                     e.preventDefault();
@@ -301,10 +352,24 @@
         });
     }
 
-    function createCustomIcon(emoji, bgColor) {
+    // Map of marker variant → SVG asset path (matches Figma design's marker icons)
+    var MARKER_ICONS = {
+        photo: '/assets/icons/marker-photo.svg',
+        start: '/assets/icons/marker-start.svg',
+        end:   '/assets/icons/marker-end.svg',
+        sleep: '/assets/icons/marker-sleep.svg'
+    };
+
+    function createSvgIcon(variant) {
+        var iconUrl = MARKER_ICONS[variant] || MARKER_ICONS.photo;
+        // Icon is rendered as a div with a CSS mask so its color (background-color)
+        // and the pill bg can be swapped on hover via the `.is-active` class.
+        var iconStyle = '-webkit-mask-image:url(' + iconUrl + ');mask-image:url(' + iconUrl + ')';
         return L.divIcon({
-            html: '<div class="flex items-center justify-center w-8 h-8 ' + bgColor + ' text-white rounded-full shadow-lg text-lg">' + emoji + '</div>',
-            className: 'custom-marker',
+            html: '<div class="adventure-marker adventure-marker--' + variant + '">' +
+                  '<div class="adventure-marker-icon" style="' + iconStyle + '"></div>' +
+                  '</div>',
+            className: 'adventure-marker-wrap',
             iconSize: [32, 32],
             iconAnchor: [16, 16],
             popupAnchor: [0, -16]

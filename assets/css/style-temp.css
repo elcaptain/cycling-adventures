@@ -8,19 +8,27 @@
 @tailwind utilities;
 @layer base {
   body {
-    @apply antialiased;
+    @apply antialiased bg-accent-50 text-accent-900 font-sans;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-bold;
+    @apply font-display font-bold text-accent-900;
   }
   h1 {
     @apply text-4xl md:text-5xl;
+    line-height: 1;
   }
   h2 {
-    @apply text-3xl md:text-4xl;
+    @apply text-3xl;
+    line-height: 36px;
   }
   h3 {
-    @apply text-2xl md:text-3xl;
+    @apply text-2xl;
+  }
+  a {
+    @apply text-spring-green;
+  }
+  a:hover {
+    @apply underline;
   }
 }
 @layer components {
@@ -34,25 +42,31 @@
     @apply p-6;
   }
   .adventure-card-title {
-    @apply text-2xl font-bold mb-2 text-gray-900 hover:text-ride-primary transition-colors;
+    @apply font-display text-2xl font-bold mb-2 text-accent-900 hover:text-accent-500 transition-colors;
   }
   .adventure-card-meta {
-    @apply flex flex-wrap gap-4 text-sm text-gray-600 mb-4;
+    @apply flex flex-wrap gap-4 text-sm text-accent-800 mb-4;
   }
   .adventure-card-description {
-    @apply text-gray-700 line-clamp-3;
+    @apply text-accent-900 line-clamp-3;
   }
   .ride-stats {
-    @apply grid grid-cols-2 md:grid-cols-5 gap-4 rounded-lg p-6 mb-8;
+    @apply p-6 mb-8 flex flex-wrap;
+    justify-content: space-between;
   }
   .ride-stat {
-    @apply text-center;
+    display: inline;
   }
   .ride-stat-value {
-    @apply text-2xl md:text-3xl font-bold text-gray-900 block;
+    @apply font-display font-medium text-accent-900;
+    font-size: 30px;
+    line-height: 36px;
   }
   .ride-stat-label {
-    @apply text-xs md:text-sm text-gray-600 uppercase tracking-wide mt-1 block;
+    @apply text-accent-800 uppercase block;
+    font-size: 11px;
+    line-height: 20px;
+    letter-spacing: 0.35px;
   }
   .map-container {
     @apply w-full h-96 md:h-[500px] rounded-lg overflow-hidden shadow-lg mb-8;
@@ -70,22 +84,27 @@
     @apply flex justify-center gap-2 mt-12;
   }
   .pagination-link {
-    @apply px-4 py-2 rounded-md bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors;
+    @apply px-4 py-2 rounded-md bg-white border border-accent-200 text-accent-800 hover:bg-accent-50 transition-colors no-underline;
   }
   .pagination-link.is-active {
-    @apply bg-ride-primary text-white border-ride-primary;
+    @apply bg-accent-500 text-white border-accent-500;
   }
   .content-block {
     @apply mb-8;
   }
   .content-block-text {
-    @apply prose prose-lg max-w-none;
+    @apply prose prose-lg max-w-none text-accent-900;
   }
   .content-block-text p {
     @apply mb-4;
+    line-height: 32px;
+    font-size: 18px;
   }
   .content-block-text a {
-    @apply text-ride-primary hover:underline;
+    @apply text-spring-green hover:underline;
+  }
+  .content-block-text h1, .content-block-text h2, .content-block-text h3, .content-block-text h4, .content-block-text h5, .content-block-text h6 {
+    @apply font-display text-accent-900;
   }
   .elevation-profile-container {
     @apply bg-white rounded-lg shadow-md p-6;
@@ -114,7 +133,8 @@
 }
 
 .daystats-heading {
-  @apply text-3xl font-bold flex-shrink-0;
+  @apply font-display text-3xl font-bold flex-shrink-0 text-accent-900;
+  line-height: 36px;
 }
 
 .daystats-stats {
@@ -122,12 +142,15 @@
 }
 
 .daystats-stats .ride-stat-value {
-  @apply text-base font-medium text-gray-600 block;
+  @apply text-base font-medium text-accent-900 block;
+  font-family: theme("fontFamily.sans");
+  line-height: 24px;
+  font-size: 16px;
 }
 
 .ride-stat-value::before {
   margin-right: 8px;
-  vertical-align: center;
+  vertical-align: middle;
   display: inline-flex;
 }
 
@@ -187,9 +210,9 @@
 .elevation-profile-sidebar {
   flex-shrink: 0;
   height: 185px;
-  background: white;
+  background: #fff9f2;
   border-radius: 0.5rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 7.5px rgba(0, 0, 0, 0.08);
   padding: 0.625rem 1rem 0.5rem;
   position: relative;
 }
@@ -206,10 +229,38 @@
   border-radius: 8px;
 }
 
-.custom-marker {
-  background-color: white;
-  border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+.adventure-marker {
+  background-color: #f6f3ff;
+  border-radius: 16px;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.3);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease;
+}
+.adventure-marker .adventure-marker-icon {
+  width: 18px;
+  height: 18px;
+  background-color: #4c0097;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  transition: background-color 0.15s ease;
+}
+.adventure-marker.is-active {
+  background-color: #4c0097;
+}
+.adventure-marker.is-active .adventure-marker-icon {
+  background-color: #f6f3ff;
+}
+
+.photo-popup-hover .leaflet-popup-close-button {
+  display: none;
 }
 
 .photo-marker-popup .leaflet-popup-content {
