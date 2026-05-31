@@ -59,12 +59,17 @@
             return;
         }
 
-        var map = L.map('adventure-map');
+        var map = L.map('adventure-map', { zoomControl: false });
 
         L.tileLayer('https://api.maptiler.com/maps/landscape-v4/{z}/{x}/{y}.png?key=sNKRl7DPdDNCUS9KExvS', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             maxZoom: 18,
         }).addTo(map);
+
+        // Place zoom + recenter on the right side. Recenter is added after zoom
+        // so Leaflet stacks it directly below in the same top-right corner.
+        L.control.zoom({ position: 'topright' }).addTo(map);
+        addRecenterControl(map, tracks);
 
         drawTracks(map, tracks);
 
@@ -387,6 +392,43 @@
         if (allPoints.length === 0) return;
 
         map.fitBounds(L.latLngBounds(allPoints), { padding: [50, 50] });
+    }
+
+    /**
+     * Adds a "recenter" control below the zoom buttons that re-fits the map
+     * to all tracks (the original view).
+     */
+    function addRecenterControl(map, tracks) {
+        var Recenter = L.Control.extend({
+            options: { position: 'topright' },
+            onAdd: function() {
+                var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-recenter');
+                var button = L.DomUtil.create('a', '', container);
+                button.href = '#';
+                button.title = 'Reset view';
+                button.setAttribute('role', 'button');
+                button.setAttribute('aria-label', 'Reset view');
+                button.innerHTML =
+                    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" ' +
+                    'stroke="currentColor" stroke-width="2" stroke-linecap="round" ' +
+                    'stroke-linejoin="round" aria-hidden="true">' +
+                    '<path d="M9 3H5a2 2 0 0 0-2 2v4"/>' +
+                    '<path d="M15 3h4a2 2 0 0 1 2 2v4"/>' +
+                    '<path d="M9 21H5a2 2 0 0 1-2-2v-4"/>' +
+                    '<path d="M15 21h4a2 2 0 0 0 2-2v-4"/>' +
+                    '</svg>';
+
+                L.DomEvent.on(button, 'click', function(e) {
+                    L.DomEvent.preventDefault(e);
+                    L.DomEvent.stopPropagation(e);
+                    fitMapToTracks(map, tracks);
+                });
+                L.DomEvent.disableClickPropagation(container);
+
+                return container;
+            }
+        });
+        new Recenter().addTo(map);
     }
 
 })();

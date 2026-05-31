@@ -70,7 +70,7 @@
 
   // Ride statistics
   .ride-stats {
-    @apply p-6 mb-8 flex flex-wrap;
+    @apply pt-6 mb-9 flex flex-wrap;
     justify-content: space-between;
   }
 
@@ -192,14 +192,14 @@
   font-size: 16px;
 }
 
-.ride-stat-value::before {
+.daystats-stats .ride-stat-value::before {
   margin-right: 8px;
   vertical-align: middle;
   display: inline-flex;
 }
 
 .ride-stat-value.distance::before {
-  content: url(/assets/icons/icon-step.svg);
+  content: url(/assets/icons/icon-distance.svg);
 }
 
 .ride-stat-value.elevation::before {
@@ -315,6 +315,22 @@
 // Hover-triggered popup: hide the close button entirely
 .photo-popup-hover .leaflet-popup-close-button {
   display: none;
+}
+
+// Recenter map control (sits below the zoom buttons in the top-right corner)
+.leaflet-control-recenter {
+  margin-top: 8px !important; // small gap below the zoom bar
+
+  a {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    color: #1f0046;
+
+    &:hover { color: #4c0097; }
+
+    svg { display: block; }
+  }
 }
 
 // Photo marker popup

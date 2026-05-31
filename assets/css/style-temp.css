@@ -51,7 +51,7 @@
     @apply text-accent-900 line-clamp-3;
   }
   .ride-stats {
-    @apply p-6 mb-8 flex flex-wrap;
+    @apply pt-6 mb-9 flex flex-wrap;
     justify-content: space-between;
   }
   .ride-stat {
@@ -148,14 +148,14 @@
   font-size: 16px;
 }
 
-.ride-stat-value::before {
+.daystats-stats .ride-stat-value::before {
   margin-right: 8px;
   vertical-align: middle;
   display: inline-flex;
 }
 
 .ride-stat-value.distance::before {
-  content: url(/assets/icons/icon-step.svg);
+  content: url(/assets/icons/icon-distance.svg);
 }
 
 .ride-stat-value.elevation::before {
@@ -261,6 +261,22 @@
 
 .photo-popup-hover .leaflet-popup-close-button {
   display: none;
+}
+
+.leaflet-control-recenter {
+  margin-top: 8px !important;
+}
+.leaflet-control-recenter a {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  color: #1f0046;
+}
+.leaflet-control-recenter a:hover {
+  color: #4c0097;
+}
+.leaflet-control-recenter a svg {
+  display: block;
 }
 
 .photo-marker-popup .leaflet-popup-content {
