@@ -1,0 +1,9 @@
+{
+  "toursRoot": "/Users/jonashoffmann/Documents/GitHub/KomootExport/tours",
+  "imports": [
+    "2047269274",
+    {
+      "ids": ["253771425", "254179440"]
+    }
+  ]
+}
