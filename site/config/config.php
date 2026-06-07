@@ -1,5 +1,7 @@
 <?php
 
+ini_set('memory_limit', '256M');
+
 /**
  * Cycling Adventures Blog Configuration
  *
@@ -26,7 +28,7 @@ return [
     'debug' => true,
 
     // Basic site settings
-    'url' => 'http:/jonas.local:8000', // Change this to your production URL
+    'url' => 'http://jrmacbook.local:8000', // Change this to your production URL
 
     // Panel settings (admin interface)
     'panel' => [
