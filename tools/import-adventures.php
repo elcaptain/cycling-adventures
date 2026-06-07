@@ -138,6 +138,18 @@ function findTourFolder(string $toursRoot, string $id): ?string
 // Helpers
 // ---------------------------------------------------------------------------
 
+function generateBlockId(): string
+{
+    return sprintf(
+        '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+        mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+        mt_rand(0, 0xffff),
+        mt_rand(0, 0x0fff) | 0x4000,
+        mt_rand(0, 0x3fff) | 0x8000,
+        mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+    );
+}
+
 function slugify(string $text): string
 {
     $text = mb_strtolower($text, 'UTF-8');
@@ -210,13 +222,12 @@ function parseTitleAndDateFromGpx(string $gpxPath): array
 
 function importGroup(array $ids, string $toursRoot, string $destRoot): bool
 {
-    // Collect data from each tour folder
-    $allGpxFiles    = [];
-    $allPhotos      = []; // ['destName' => 'sourcePath', ...]
-    $allMetaMap     = []; // ['destName' => metadata entry, ...]
-    $allComments    = [];
-    $primaryTitle   = null;
-    $primaryDate    = date('Y-m-d');
+    // Collect per-tour data in order
+    $tourDataList = [];
+    $allPhotos    = []; // destName => srcPath
+    $allMetaMap   = []; // destName => metadata entry
+    $primaryTitle = null;
+    $primaryDate  = date('Y-m-d');
 
     foreach ($ids as $idx => $id) {
         $folder = findTourFolder($toursRoot, $id);
@@ -234,9 +245,6 @@ function importGroup(array $ids, string $toursRoot, string $destRoot): bool
         if (empty($gpxFiles)) {
             echo "  - Error: no GPX file found in $folder\n";
             return false;
-        }
-        foreach ($gpxFiles as $gpxPath) {
-            $allGpxFiles[] = $gpxPath;
         }
 
         // Title and date from first tour's first GPX only
@@ -258,11 +266,11 @@ function importGroup(array $ids, string $toursRoot, string $destRoot): bool
         );
 
         // Load metadata for this tour
-        $jsonFiles = array_merge(
+        $jsonFiles  = array_merge(
             glob($folder . DIRECTORY_SEPARATOR . '*.json') ?: [],
             glob($folder . DIRECTORY_SEPARATOR . '*.JSON') ?: []
         );
-        $sourceMeta = []; // keyed by original filename
+        $sourceMeta = [];
         if (!empty($jsonFiles)) {
             $json = @file_get_contents($jsonFiles[0]);
             $data = @json_decode($json, true);
@@ -280,7 +288,6 @@ function importGroup(array $ids, string $toursRoot, string $destRoot): bool
             $origName = basename($imgPath);
             $destName = $id . '_' . $origName;
             $allPhotos[$destName] = $imgPath;
-
             if (isset($sourceMeta[$origName])) {
                 $entry             = $sourceMeta[$origName];
                 $entry['filename'] = $destName;
@@ -289,16 +296,24 @@ function importGroup(array $ids, string $toursRoot, string $destRoot): bool
         }
 
         // Comments
+        $commentsText = null;
         $commentsPath = $folder . DIRECTORY_SEPARATOR . 'comments.txt';
         if (is_file($commentsPath)) {
             $text = trim(file_get_contents($commentsPath));
             if ($text !== '') {
-                $allComments[] = $text;
+                $commentsText = $text;
                 echo "    Read comments.txt (" . strlen($text) . " chars)\n";
             }
         }
+
+        $tourDataList[] = [
+            'id'       => $id,
+            'gpxPaths' => $gpxFiles,
+            'comments' => $commentsText,
+        ];
     }
 
+    // Create destination folder
     $slug          = slugify($primaryTitle);
     $prefix        = nextNumericPrefix($destRoot);
     $newFolderName = $prefix . '_' . $slug;
@@ -314,15 +329,23 @@ function importGroup(array $ids, string $toursRoot, string $destRoot): bool
         return false;
     }
 
-    // Copy GPX files
-    $copiedGpxNames = [];
-    foreach ($allGpxFiles as $gpxPath) {
-        $gpxName = basename($gpxPath);
-        if (copy($gpxPath, $newFolder . DIRECTORY_SEPARATOR . $gpxName)) {
-            $copiedGpxNames[] = $gpxName;
-            echo "  - Copied GPX: $gpxName\n";
-        } else {
-            echo "  - Warning: failed to copy GPX: $gpxName\n";
+    // Copy GPX files; create UUID sidecar .txt so daystats blocks can reference them
+    $allCopiedGpxNames = []; // flat list for Gpxfile: field
+    $tourGpxInfo       = []; // [tIdx => [['name', 'uuid'], ...]]
+
+    foreach ($tourDataList as $tIdx => $td) {
+        $tourGpxInfo[$tIdx] = [];
+        foreach ($td['gpxPaths'] as $gpxPath) {
+            $gpxName = basename($gpxPath);
+            $gpxUuid = 'import-' . uniqid();
+            if (copy($gpxPath, $newFolder . DIRECTORY_SEPARATOR . $gpxName)) {
+                file_put_contents($newFolder . DIRECTORY_SEPARATOR . $gpxName . '.txt', "Uuid: $gpxUuid\n");
+                $allCopiedGpxNames[]    = $gpxName;
+                $tourGpxInfo[$tIdx][]   = ['name' => $gpxName, 'uuid' => $gpxUuid];
+                echo "  - Copied GPX: $gpxName\n";
+            } else {
+                echo "  - Warning: failed to copy GPX: $gpxName\n";
+            }
         }
     }
 
@@ -338,41 +361,35 @@ function importGroup(array $ids, string $toursRoot, string $destRoot): bool
     echo "  - Images copied: " . count($copiedPhotos) . "\n";
 
     // Write Kirby sidecar .txt files for each photo
-    foreach ($copiedPhotos as $idx => $imgName) {
+    foreach ($copiedPhotos as $photoIdx => $imgName) {
         $meta     = $allMetaMap[$imgName] ?? null;
         $metaFile = $newFolder . DIRECTORY_SEPARATOR . $imgName . '.txt';
-        $contents = "Sort: " . ($idx + 1) . "\n\n----\n\n";
+        $contents = "Sort: " . ($photoIdx + 1) . "\n\n----\n\n";
         if ($meta) {
-            if (isset($meta['created_at'])) {
-                $contents .= "Created: " . $meta['created_at'] . "\n\n----\n\n";
-            }
-            if (isset($meta['lat'])) {
-                $contents .= "Latitude: " . $meta['lat'] . "\n\n----\n\n";
-            }
-            if (isset($meta['lng'])) {
-                $contents .= "Longitude: " . $meta['lng'] . "\n\n----\n\n";
-            }
+            if (isset($meta['created_at'])) $contents .= "Created: " . $meta['created_at'] . "\n\n----\n\n";
+            if (isset($meta['lat']))        $contents .= "Latitude: " . $meta['lat'] . "\n\n----\n\n";
+            if (isset($meta['lng']))        $contents .= "Longitude: " . $meta['lng'] . "\n\n----\n\n";
         }
         $contents .= "Uuid: import-" . uniqid() . "\n";
         @file_put_contents($metaFile, $contents);
     }
 
-    // Build adventure.txt content
-    $content = "Title: " . $primaryTitle . "\n\n----\n\n";
+    // Build adventure.txt
+    $content  = "Title: " . $primaryTitle . "\n\n----\n\n";
     $content .= "Date: " . $primaryDate . "\n\n----\n\n";
 
-    // GPX file field — list format for one or more files
-    if (count($copiedGpxNames) === 1) {
-        $content .= "Gpxfile: " . $copiedGpxNames[0] . "\n\n----\n\n";
+    // Gpxfile field
+    if (count($allCopiedGpxNames) === 1) {
+        $content .= "Gpxfile: " . $allCopiedGpxNames[0] . "\n\n----\n\n";
     } else {
         $content .= "Gpxfile:\n";
-        foreach ($copiedGpxNames as $gpxName) {
+        foreach ($allCopiedGpxNames as $gpxName) {
             $content .= "- " . $gpxName . "\n";
         }
         $content .= "\n----\n\n";
     }
 
-    // Photos list
+    // Photos field
     if (!empty($copiedPhotos)) {
         $content .= "Photos:\n";
         foreach ($copiedPhotos as $imgName) {
@@ -381,32 +398,47 @@ function importGroup(array $ids, string $toursRoot, string $destRoot): bool
         $content .= "\n----\n\n";
     }
 
-    // Comments → one layout block per segment.
-    // Each tour's comments.txt may contain multiple segments separated by "---" on its own line.
-    // Each segment becomes its own text block, preserving reading order across tours.
-    $blocks = [];
-    foreach ($allComments as $tourComment) {
-        $normalized = str_replace("\r\n", "\n", $tourComment);
-        $segments   = preg_split('/^\s*---\s*$/m', $normalized);
-        foreach ($segments as $segment) {
-            $segment = trim($segment);
-            if ($segment !== '') {
-                $blocks[] = $segment;
+    // Layout blocks — stored as JSON (Kirby's native format)
+    // Multi-tour: daystats block per GPX, then comment segments, repeating per tour.
+    // Single-tour: comment segments only (no daystats).
+    $layoutBlocks = [];
+    $isMultiTour  = count($ids) > 1;
+
+    foreach ($tourDataList as $tIdx => $td) {
+        if ($isMultiTour) {
+            foreach ($tourGpxInfo[$tIdx] as $gpxInfo) {
+                $layoutBlocks[] = [
+                    'content'  => [
+                        'text'    => 'Day ' . ($tIdx + 1),
+                        'level'   => 'h2',
+                        'gpxfile' => ['file://' . $gpxInfo['uuid']],
+                    ],
+                    'id'       => generateBlockId(),
+                    'isHidden' => false,
+                    'type'     => 'daystats',
+                ];
+            }
+        }
+
+        if ($td['comments'] !== null) {
+            $normalized = str_replace("\r\n", "\n", $td['comments']);
+            $segments   = preg_split('/^\s*---\s*$/m', $normalized);
+            foreach ($segments as $segment) {
+                $segment = trim($segment);
+                if ($segment !== '') {
+                    $layoutBlocks[] = [
+                        'content'  => ['text' => $segment],
+                        'id'       => generateBlockId(),
+                        'isHidden' => false,
+                        'type'     => 'text',
+                    ];
+                }
             }
         }
     }
 
-    if (!empty($blocks)) {
-        $content .= "Layout:\n";
-        foreach ($blocks as $block) {
-            $lines  = explode("\n", $block);
-            $quoted = '';
-            foreach ($lines as $line) {
-                $quoted .= "      " . rtrim($line) . "\n";
-            }
-            $content .= "-\n  type: text\n  content:\n    text: >\n" . $quoted;
-        }
-        $content .= "\n----\n\n";
+    if (!empty($layoutBlocks)) {
+        $content .= "Layout: " . json_encode($layoutBlocks, JSON_UNESCAPED_UNICODE) . "\n\n----\n\n";
     }
 
     $content .= "Uuid: import-" . uniqid() . "\n";
