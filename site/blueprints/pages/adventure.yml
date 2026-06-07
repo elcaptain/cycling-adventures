@@ -29,8 +29,8 @@ fields:
   description:
     label: Short Description
     type: textarea
-    maxlength: 300
-    help: Brief summary shown in the adventure list (max 300 characters)
+    maxlength: 500
+    help: Brief summary shown in the adventure list (max 500 characters)
 
   # Layout Style
   layoutStyle:
