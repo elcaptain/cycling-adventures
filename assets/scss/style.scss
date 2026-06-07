@@ -98,7 +98,11 @@
 
   // Photo gallery
   .photo-gallery {
-    @apply flex flex-row gap-3 mb-8;
+    //@apply flex flex-row gap-3 mb-8;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    row-gap: 20px;
+    column-gap: 10px;
   }
 
   .photo-gallery-item {
