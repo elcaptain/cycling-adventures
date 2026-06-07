@@ -270,15 +270,41 @@ function parseGPX($gpxPath) {
         $stats['duration'] = $duration;
         $stats['duration_formatted'] = formatDuration($duration);
 
-        // Calculate moving time (simplified - actual calculation would need speed analysis)
-        // For now, assume 90% of total time is moving time
-        $stats['moving_time'] = round($duration * 0.9);
-        $stats['moving_time_formatted'] = formatDuration($stats['moving_time']);
-
-        // Average speed
-        if ($duration > 0) {
-            $stats['avg_speed'] = round(($totalDistance / ($duration / 3600)), 1);
+        // Calculate moving time: sum segments where speed >= 1 km/h
+        $movingTime = 0;
+        for ($i = 1; $i < count($trackpoints); $i++) {
+            $prev = $trackpoints[$i - 1];
+            $curr = $trackpoints[$i];
+            if ($prev['time'] === null || $curr['time'] === null) continue;
+            $timeDiff = $curr['time'] - $prev['time'];
+            if ($timeDiff <= 0) continue;
+            $dist = haversineDistance($prev['lat'], $prev['lon'], $curr['lat'], $curr['lon']);
+            if (($dist / ($timeDiff / 3600)) >= 1.0) {
+                $movingTime += $timeDiff;
+            }
         }
+        $stats['moving_time'] = $movingTime;
+        $stats['moving_time_formatted'] = formatDuration($movingTime);
+
+        // Average speed based on moving time (matches Komoot's display)
+        if ($movingTime > 0) {
+            $stats['avg_speed'] = round($totalDistance / ($movingTime / 3600), 1);
+        }
+    }
+
+    // Downsample to max 1500 points (stats already calculated above from full set)
+    $maxPoints = 1500;
+    if (count($trackpoints) > $maxPoints) {
+        $step = (int)ceil(count($trackpoints) / $maxPoints);
+        $sampled = [];
+        for ($i = 0; $i < count($trackpoints); $i += $step) {
+            $sampled[] = $trackpoints[$i];
+        }
+        $last = end($trackpoints);
+        if (end($sampled) !== $last) {
+            $sampled[] = $last;
+        }
+        $trackpoints = $sampled;
     }
 
     return [

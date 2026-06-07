@@ -72,7 +72,10 @@
     @apply w-full h-96 md:h-[500px] rounded-lg overflow-hidden shadow-lg mb-8;
   }
   .photo-gallery {
-    @apply flex flex-row gap-3 mb-8;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    row-gap: 20px;
+    column-gap: 10px;
   }
   .photo-gallery-item {
     @apply relative overflow-hidden rounded-lg cursor-pointer;

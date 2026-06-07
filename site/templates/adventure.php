@@ -50,6 +50,10 @@ foreach ($tracks as $track) {
         $pointIdx++;
     }
 }
+
+$tracksJson    = esc(json_encode($tracks), 'attr');
+$photosJson    = esc(json_encode($matchedPhotos), 'attr');
+$elevationJson = esc(json_encode($elevationProfile), 'attr');
 ?>
 
 <!-- Adventure Header -->
@@ -172,8 +176,8 @@ foreach ($tracks as $track) {
         <div
             id="adventure-map"
             class="map-container"
-            data-tracks="<?= esc(json_encode($tracks), 'attr') ?>"
-            data-photos="<?= esc(json_encode($matchedPhotos), 'attr') ?>"
+            data-tracks="<?= $tracksJson ?>"
+            data-photos="<?= $photosJson ?>"
         ></div>
     </div>
     <?php endif ?>
@@ -292,7 +296,7 @@ foreach ($tracks as $track) {
     <div class="elevation-profile-container">
         <canvas
             id="elevation-chart"
-            data-elevation-profile="<?= esc(json_encode($elevationProfile), 'attr') ?>"
+            data-elevation-profile="<?= $elevationJson ?>"
         ></canvas>
     </div>
 </div>
@@ -325,14 +329,14 @@ foreach ($tracks as $track) {
             <div
                 id="adventure-map"
                 class="map-container map-sticky"
-                data-tracks="<?= esc(json_encode($tracks), 'attr') ?>"
-                data-photos="<?= esc(json_encode($matchedPhotos), 'attr') ?>"
+                data-tracks="<?= $tracksJson ?>"
+                data-photos="<?= $photosJson ?>"
             ></div>
             <?php if (!empty($elevationProfile)): ?>
             <div class="elevation-profile-sidebar">
                 <canvas
                     id="elevation-chart"
-                    data-elevation-profile="<?= esc(json_encode($elevationProfile), 'attr') ?>"
+                    data-elevation-profile="<?= $elevationJson ?>"
                 ></canvas>
             </div>
             <?php endif ?>
