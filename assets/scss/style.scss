@@ -114,6 +114,7 @@
     @apply w-full h-full object-cover;
   }
 
+
   // Pagination
   .pagination {
     @apply flex justify-center gap-2 mt-12;
@@ -171,6 +172,17 @@
     overflow: hidden;
   }
 }
+
+// Content block gallery: columns match image count (max 4)
+.content-gallery {
+  display: grid;
+  row-gap: 20px;
+  column-gap: 10px;
+}
+.content-gallery--cols-1 { grid-template-columns: 1fr; }
+.content-gallery--cols-2 { grid-template-columns: repeat(2, 1fr); }
+.content-gallery--cols-3 { grid-template-columns: repeat(3, 1fr); }
+.content-gallery--cols-4 { grid-template-columns: repeat(4, 1fr); }
 
 // Day Stats block: headline + compact stats side by side
 .daystats-block {

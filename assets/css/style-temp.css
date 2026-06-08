@@ -127,6 +127,28 @@
     overflow: hidden;
   }
 }
+.content-gallery {
+  display: grid;
+  row-gap: 20px;
+  column-gap: 10px;
+}
+
+.content-gallery--cols-1 {
+  grid-template-columns: 1fr;
+}
+
+.content-gallery--cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.content-gallery--cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.content-gallery--cols-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
 .daystats-block {
   @apply flex flex-col gap-3 mb-8;
 }

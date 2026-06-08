@@ -12,7 +12,7 @@
 
 <article class="adventure-card">
     <!-- Cover Image -->
-    <?php if ($coverImage = $adventure->images()->first()): ?>
+    <?php if ($coverImage = $adventure->coverimage()->toFiles()->first() ?? $adventure->images()->first()): ?>
         <a href="<?= $adventure->url() ?>">
             <img
                 src="<?= $coverImage->crop(800, 450)->url() ?>"

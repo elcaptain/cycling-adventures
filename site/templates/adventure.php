@@ -225,9 +225,10 @@ $elevationJson = esc(json_encode($elevationProfile), 'attr');
 
             <?php elseif ($block->type() == 'gallery'): ?>
                 <!-- Gallery Block -->
-                <?php if ($block->images()->isNotEmpty()): ?>
-                    <div class="photo-gallery">
-                        <?php foreach ($block->images()->toFiles() as $image): ?>
+                <?php $blockImages = $block->images()->toFiles(); ?>
+                <?php if ($blockImages->isNotEmpty()): ?>
+                    <div class="content-gallery content-gallery--cols-<?= min($blockImages->count(), 4) ?>">
+                        <?php foreach ($blockImages as $image): ?>
                             <div class="photo-gallery-item">
                                 <img
                                     src="<?= $image->crop(600, 400)->url() ?>"
