@@ -302,23 +302,26 @@ $elevationJson = esc(json_encode($elevationProfile), 'attr');
 </div>
 <?php endif ?>
 
-<!-- Photo Gallery (if no layout blocks, show all images) -->
-
+<!-- Photo Gallery: curated photos from the photos field -->
+<?php $galleryPhotos = $page->photos()->toFiles(); ?>
+<?php if ($galleryPhotos->isNotEmpty()): ?>
 <div class="mt-12">
     <h2 class="text-3xl font-bold mb-8">Photos</h2>
     <div class="photo-gallery">
-        <?php foreach ($page->images() as $image): ?>
+        <?php foreach ($galleryPhotos as $image): ?>
             <div class="photo-gallery-item">
                 <img
-                    src="<?= $image->crop(600, 400)->url() ?>"
-                    srcset="<?= $image->srcset([400, 600, 800]) ?>"
+                    src="<?= $image->crop(600, 600)->url() ?>"
+                    srcset="<?= $image->srcset([400, 800]) ?>"
                     alt="<?= $image->alt() ?>"
                     class="photo-gallery-image"
+                    data-photo-filename="<?= $image->filename() ?>"
                 >
             </div>
         <?php endforeach ?>
     </div>
 </div>
+<?php endif ?>
 
 
 <?php if ($page->layoutStyle()->toBool() === true): ?>
