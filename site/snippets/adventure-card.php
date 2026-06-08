@@ -78,9 +78,22 @@
         </div>
 
         <!-- Description -->
-        <?php if ($adventure->description()->isNotEmpty()): ?>
+        <?php
+        $cardDescription = null;
+        if ($adventure->description()->isNotEmpty()) {
+            $cardDescription = (string)$adventure->description();
+        } elseif ($adventure->layout()->isNotEmpty()) {
+            foreach ($adventure->layout()->toBlocks() as $block) {
+                if ($block->type() === 'text' && $block->text()->isNotEmpty()) {
+                    $cardDescription = strip_tags($block->text()->kirbytext());
+                    break;
+                }
+            }
+        }
+        ?>
+        <?php if ($cardDescription): ?>
         <p class="adventure-card-description">
-            <?= $adventure->description() ?>
+            <?= Str::excerpt($cardDescription, 200) ?>
         </p>
         <?php endif ?>
     </div>
