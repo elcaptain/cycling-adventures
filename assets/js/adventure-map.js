@@ -375,9 +375,9 @@
                   '<div class="adventure-marker-icon" style="' + iconStyle + '"></div>' +
                   '</div>',
             className: 'adventure-marker-wrap',
-            iconSize: [32, 32],
-            iconAnchor: [16, 16],
-            popupAnchor: [0, -16]
+            iconSize: [20, 20],
+            iconAnchor: [10, 10],
+            popupAnchor: [0, -10]
         });
     }
 
