@@ -244,11 +244,15 @@
             });
 
             marker.on('popupopen', function(e) {
+                setMarkerActive(marker, true);
                 var img = e.popup.getElement().querySelector('img');
                 if (img) {
                     if (!img.complete) img.addEventListener('load', function() { e.popup.update(); });
                     else e.popup.update();
                 }
+            });
+            marker.on('popupclose', function() {
+                setMarkerActive(marker, false);
             });
 
             var photoKey = basename(photo.url);
@@ -270,27 +274,8 @@
         }
     }
 
-    // Shared popup for hover-triggered previews: no close button, no auto-close
-    // shenanigans. Marker click still uses the bound popup (with close button).
-    var _hoverPopup = null;
-
-    function getHoverPopup() {
-        if (!_hoverPopup) {
-            _hoverPopup = L.popup({
-                closeButton: false,
-                autoClose: false,
-                closeOnClick: false,
-                maxWidth: 220,
-                minWidth: 200,
-                className: 'photo-popup photo-popup-hover'
-            });
-        }
-        return _hoverPopup;
-    }
-
     function setMarkerActive(marker, active) {
         if (!marker) return;
-        // Bring active marker above its neighbours so it isn't covered
         marker.setZIndexOffset(active ? 1000 : 0);
         var wrap = marker.getElement();
         if (!wrap) return;
@@ -298,61 +283,22 @@
         if (pill) pill.classList.toggle('is-active', active);
     }
 
-    function openHoverPopupForMarker(marker) {
-        if (!marker || !_map) return;
-        var bound = marker.getPopup();
-        if (!bound) return;
-        var popup = getHoverPopup();
-        popup.setLatLng(marker.getLatLng())
-             .setContent(bound.getContent())
-             .openOn(_map);
-    }
-
-    function closeHoverPopup() {
-        if (_hoverPopup && _map && _map.hasLayer(_hoverPopup)) {
-            _map.closePopup(_hoverPopup);
-        }
-    }
-
     function bindContentImageHover() {
         var imgs = document.querySelectorAll('.content-block img[data-photo-filename], .photo-gallery-image[data-photo-filename]');
         imgs.forEach(function(img) {
             var imgKey = basename(img.dataset.photoFilename || img.getAttribute('src'));
-            var openTimeout;
-
-            function activate() {
-                var marker = photoMarkerIndex.get(imgKey);
-                if (!marker) return;
-                setMarkerActive(marker, true);
-                openHoverPopupForMarker(marker);
-            }
-
-            function deactivate() {
-                var marker = photoMarkerIndex.get(imgKey);
-                if (!marker) return;
-                setMarkerActive(marker, false);
-                closeHoverPopup();
-            }
 
             img.addEventListener('mouseenter', function() {
-                openTimeout = setTimeout(activate, 60);
+                setMarkerActive(photoMarkerIndex.get(imgKey), true);
             });
             img.addEventListener('mouseleave', function() {
-                clearTimeout(openTimeout);
-                deactivate();
+                setMarkerActive(photoMarkerIndex.get(imgKey), false);
             });
-            img.addEventListener('focus', activate);
-            img.addEventListener('blur', deactivate);
-            img.addEventListener('click', function(e) {
-                var marker = photoMarkerIndex.get(imgKey);
-                if (marker) {
-                    // Click on a content image opens the bound popup (with close button)
-                    closeHoverPopup();
-                    setMarkerActive(marker, false);
-                    if (marker.isPopupOpen && marker.isPopupOpen()) marker.closePopup();
-                    else marker.openPopup();
-                    e.preventDefault();
-                }
+            img.addEventListener('focus', function() {
+                setMarkerActive(photoMarkerIndex.get(imgKey), true);
+            });
+            img.addEventListener('blur', function() {
+                setMarkerActive(photoMarkerIndex.get(imgKey), false);
             });
         });
     }

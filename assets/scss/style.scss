@@ -317,10 +317,6 @@
   }
 }
 
-// Hover-triggered popup: hide the close button entirely
-.photo-popup-hover .leaflet-popup-close-button {
-  display: none;
-}
 
 // Recenter map control (sits below the zoom buttons in the top-right corner)
 .leaflet-control-recenter {

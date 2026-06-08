@@ -263,10 +263,6 @@
   background-color: #f6f3ff;
 }
 
-.photo-popup-hover .leaflet-popup-close-button {
-  display: none;
-}
-
 .leaflet-control-recenter {
   margin-top: 8px !important;
 }
