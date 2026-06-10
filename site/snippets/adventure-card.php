@@ -13,9 +13,9 @@
 <article class="adventure-card">
     <!-- Cover Image -->
     <?php if ($coverImage = $adventure->coverimage()->toFiles()->first() ?? $adventure->images()->first()): ?>
-        <a href="<?= $adventure->url() ?>">
+        <a href="<?= $adventure->permalinkUrl() ?>">
             <img
-                src="<?= $coverImage->crop(800, 450)->url() ?>"
+                src="<?= $coverImage->crop(800, 450, ['crop' => $coverImage->focus()])->url() ?>"
                 srcset="<?= $coverImage->srcset([400, 800, 1200]) ?>"
                 alt="<?= $adventure->title() ?>"
                 class="adventure-card-image"
@@ -27,7 +27,7 @@
     <div class="adventure-card-content">
         <!-- Title -->
         <h2 class="adventure-card-title">
-            <a href="<?= $adventure->url() ?>">
+            <a href="<?= $adventure->permalinkUrl() ?>">
                 <?= $adventure->title() ?>
             </a>
         </h2>
