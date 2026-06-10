@@ -144,6 +144,55 @@ Kirby::plugin('cycling/adventure-helpers', [
         },
 
         /**
+         * Get gallery photos sorted chronologically by capture time.
+         * Falls back to nearest trackpoint time for GPS-located photos without a timestamp.
+         * Photos with no sortable information are appended at the end in original order.
+         */
+        'galleryPhotosSorted' => function() {
+            $galleryFiles = $this->photos()->toFiles();
+            if ($galleryFiles->isEmpty()) {
+                return [];
+            }
+
+            $tracks = $this->gpxDataAll();
+            $allTrackpoints = [];
+            foreach ($tracks as $track) {
+                foreach ($track['trackpoints'] as $tp) {
+                    $allTrackpoints[] = $tp;
+                }
+            }
+
+            $sortKeys = [];
+            foreach ($this->photosWithExif() as $photoData) {
+                $filename = $photoData['file']->filename();
+                $key = $photoData['timestamp'];
+
+                if ($key === null && !empty($photoData['lat']) && !empty($photoData['lon']) && !empty($allTrackpoints)) {
+                    $key = findTrackSortKey($photoData['lat'], $photoData['lon'], $allTrackpoints);
+                }
+
+                $sortKeys[$filename] = $key;
+            }
+
+            $arr = [];
+            foreach ($galleryFiles as $image) {
+                $arr[] = $image;
+            }
+
+            usort($arr, function($a, $b) use ($sortKeys) {
+                $aKey = $sortKeys[$a->filename()] ?? null;
+                $bKey = $sortKeys[$b->filename()] ?? null;
+
+                if ($aKey === null && $bKey === null) return 0;
+                if ($aKey === null) return 1;
+                if ($bKey === null) return -1;
+                return $aKey <=> $bKey;
+            });
+
+            return $arr;
+        },
+
+        /**
          * Get aggregated ride statistics across all GPX files
          */
         'gpxAggregatedStats' => function() {
@@ -518,6 +567,26 @@ function matchPhotosToTrack($photos, $trackpoints) {
     }
 
     return $matched;
+}
+
+/**
+ * Find the sort key for a photo located by GPS coordinates.
+ * Returns the nearest trackpoint's timestamp, or its index if timestamps are absent.
+ */
+function findTrackSortKey($lat, $lon, $trackpoints) {
+    $minDist  = PHP_INT_MAX;
+    $bestPoint = null;
+    $bestIdx  = -1;
+    foreach ($trackpoints as $idx => $point) {
+        $dist = haversineDistance($lat, $lon, $point['lat'], $point['lon']);
+        if ($dist < $minDist) {
+            $minDist  = $dist;
+            $bestPoint = $point;
+            $bestIdx  = $idx;
+        }
+    }
+    if ($bestPoint === null) return null;
+    return $bestPoint['time'] ?? $bestIdx;
 }
 
 /**
