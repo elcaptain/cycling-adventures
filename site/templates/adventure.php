@@ -303,9 +303,9 @@ $elevationJson = esc(json_encode($elevationProfile), 'attr');
 </div>
 <?php endif ?>
 
-<!-- Photo Gallery: curated photos from the photos field -->
-<?php $galleryPhotos = $page->photos()->toFiles(); ?>
-<?php if ($galleryPhotos->isNotEmpty()): ?>
+<!-- Photo Gallery: curated photos from the photos field, sorted by capture time -->
+<?php $galleryPhotos = $page->galleryPhotosSorted(); ?>
+<?php if (!empty($galleryPhotos)): ?>
 <div class="mt-12">
     <h2 class="text-3xl font-bold mb-8">Photos</h2>
     <div class="photo-gallery">
