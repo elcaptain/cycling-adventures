@@ -63,7 +63,27 @@ return [
                 return page('home');
             }
         ],
-        // Adventure detail pages
+        // Permalink: /adventures/28-some-slug (slug is decorative, lookup by number)
+        [
+            'pattern' => 'adventures/(:num)-(:any)',
+            'action'  => function (string $num, string $slug) {
+                $page = page('adventures')->children()
+                    ->filter(fn($p) => (string)$p->num() === $num)
+                    ->first();
+                return $page ?? page('error');
+            }
+        ],
+        // Permalink without slug: /adventures/28
+        [
+            'pattern' => 'adventures/(:num)',
+            'action'  => function (string $num) {
+                $page = page('adventures')->children()
+                    ->filter(fn($p) => (string)$p->num() === $num)
+                    ->first();
+                return $page ?? page('error');
+            }
+        ],
+        // Legacy slug-only URLs for backwards compatibility
         [
             'pattern' => 'adventures/(:any)',
             'action' => function ($uid) {
