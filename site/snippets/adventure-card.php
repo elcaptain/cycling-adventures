@@ -51,18 +51,14 @@
             ?>
             <?php if ($adistance): ?>
             <span class="flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                </svg>
+                <img src="/assets/icons/icon-distance.svg" class="w-4 h-4" alt="">
                 <?= $adistance ?> km
             </span>
             <?php endif ?>
 
             <?php if ($aelev): ?>
             <span class="flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
-                </svg>
+                <img src="/assets/icons/icon-elevation.svg" class="w-4 h-4" alt="">
                 <?= $aelev ?> m
             </span>
             <?php endif ?>
