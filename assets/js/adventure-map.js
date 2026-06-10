@@ -337,7 +337,7 @@
 
         if (allPoints.length === 0) return;
 
-        map.fitBounds(L.latLngBounds(allPoints), { padding: [50, 50] });
+        map.fitBounds(L.latLngBounds(allPoints), { padding: [20, 20] });
     }
 
     /**
