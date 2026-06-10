@@ -11,6 +11,10 @@
 
 Kirby::plugin('cycling/adventure-helpers', [
     'pageMethods' => [
+        'permalinkUrl' => function () {
+            return url('adventures/' . $this->num() . '-' . $this->slug());
+        },
+
         /**
          * Get GPX data from the adventure page
          * Returns an array of statistics and track points
@@ -165,10 +169,16 @@ Kirby::plugin('cycling/adventure-helpers', [
             $sortKeys = [];
             foreach ($this->photosWithExif() as $photoData) {
                 $filename = $photoData['file']->filename();
-                $key = $photoData['timestamp'];
+                $key = null;
 
-                if ($key === null && !empty($photoData['lat']) && !empty($photoData['lon']) && !empty($allTrackpoints)) {
+                // Primary: spatial position along the track (camera clock may be unsynced)
+                if (!empty($photoData['lat']) && !empty($photoData['lon']) && !empty($allTrackpoints)) {
                     $key = findTrackSortKey($photoData['lat'], $photoData['lon'], $allTrackpoints);
+                }
+
+                // Fallback: EXIF/sidecar timestamp
+                if ($key === null) {
+                    $key = $photoData['timestamp'];
                 }
 
                 $sortKeys[$filename] = $key;
