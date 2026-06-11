@@ -14,11 +14,13 @@
     <!-- Cover Image -->
     <?php if ($coverImage = $adventure->coverimage()->toFiles()->first() ?? $adventure->images()->first()): ?>
         <a href="<?= $adventure->permalinkUrl() ?>">
+            <?php $focus = $coverImage->focus()->value(); ?>
             <img
-                src="<?= $coverImage->crop(800, 450, ['crop' => $coverImage->focus()])->url() ?>"
+                src="<?= $coverImage->crop(800, 450)->url() ?>"
                 srcset="<?= $coverImage->srcset([400, 800, 1200]) ?>"
                 alt="<?= $adventure->title() ?>"
                 class="adventure-card-image"
+                <?= $focus ? 'style="object-position: ' . $focus . '"' : '' ?>
             >
         </a>
     <?php endif ?>

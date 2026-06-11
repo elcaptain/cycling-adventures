@@ -1,1 +1,6 @@
 accept: true
+
+fields:
+  focus:
+    label: Focal Point
+    type: text
