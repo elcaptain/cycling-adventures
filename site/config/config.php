@@ -33,7 +33,8 @@ return [
     // Panel settings (admin interface)
     'panel' => [
         'install' => true,
-        'slug' => 'panel'
+        'slug'    => 'panel',
+        'css'     => 'assets/css/panel.css',
     ],
 
     // Content settings
