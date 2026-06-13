@@ -66,7 +66,7 @@ Kirby::plugin('cycling/adventure-helpers', [
                 if (!$lat) {
                     try {
                         $latVal = $photo->latitude();
-                        if (!empty($latVal)) {
+                        if (!empty((string)$latVal)) {
                             $lat = floatval((string)$latVal);
                         }
                     } catch (Throwable $e) {
@@ -77,7 +77,7 @@ Kirby::plugin('cycling/adventure-helpers', [
                 if (!$lon) {
                     try {
                         $lonVal = $photo->longitude();
-                        if (!empty($lonVal)) {
+                        if (!empty((string)$lonVal)) {
                             $lon = floatval((string)$lonVal);
                         }
                     } catch (Throwable $e) {
@@ -525,7 +525,7 @@ function matchPhotosToTrack($photos, $trackpoints) {
             try {
                 $fLat = $file->latitude();
                 $fLon = $file->longitude();
-                if (!empty($fLat) && !empty($fLon)) {
+                if (!empty((string)$fLat) && !empty((string)$fLon)) {
                     $photo['lat'] = floatval((string)$fLat);
                     $photo['lon'] = floatval((string)$fLon);
                     $matched[] = $photo;
