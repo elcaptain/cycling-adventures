@@ -50,19 +50,6 @@ Kirby::plugin('cycling/adventure-helpers', [
                     $lon = $exif['lon'] ?? null;
                 }
 
-                // Fallback: if EXIF missing or incomplete, try Kirby file fields (sidecar) like `latitude()`/`longitude()` and `created()`
-                if (!$timestamp) {
-                    try {
-                        $c = $photo->created();
-                        if (!empty($c)) {
-                            $ts = is_object($c) && method_exists($c, 'toDateTime') ? $c->toDateTime()->getTimestamp() : @strtotime((string)$c);
-                            if ($ts !== false) $timestamp = $ts;
-                        }
-                    } catch (Throwable $e) {
-                        // created() may not exist or is empty
-                    }
-                }
-
                 if (!$lat) {
                     try {
                         $latVal = $photo->latitude();
@@ -166,19 +153,21 @@ Kirby::plugin('cycling/adventure-helpers', [
                 }
             }
 
+            $photosWithExif = $this->photosWithExif();
+            $clockOffset = computeClockOffset($photosWithExif, $allTrackpoints);
+
             $sortKeys = [];
-            foreach ($this->photosWithExif() as $photoData) {
+            foreach ($photosWithExif as $photoData) {
                 $filename = $photoData['file']->filename();
-                $key = null;
 
-                // Primary: spatial position along the track (camera clock may be unsynced)
-                if (!empty($photoData['lat']) && !empty($photoData['lon']) && !empty($allTrackpoints)) {
+                if ($photoData['timestamp'] !== null) {
+                    // Phone or Camera: sort by adjusted EXIF capture time
+                    $key = $photoData['timestamp'] + $clockOffset;
+                } elseif (!empty($photoData['lat']) && !empty($photoData['lon'])) {
+                    // Komoot import (sidecar GPS only): infer capture time from nearest track position
                     $key = findTrackSortKey($photoData['lat'], $photoData['lon'], $allTrackpoints);
-                }
-
-                // Fallback: EXIF/sidecar timestamp
-                if ($key === null) {
-                    $key = $photoData['timestamp'];
+                } else {
+                    $key = null;
                 }
 
                 $sortKeys[$filename] = $key;
@@ -511,8 +500,11 @@ function matchPhotosToTrack($photos, $trackpoints) {
         }
     }
 
+    $clockOffset = computeClockOffset($photos, $trackpoints);
+
     foreach ($photos as $photo) {
-        // If photo already has GPS coordinates from EXIF, use those
+        // If photo already has GPS coordinates from EXIF, use those directly —
+        // always show the photo at its own location, regardless of when it was taken.
         if (!empty($photo['lat']) && !empty($photo['lon'])) {
             $matched[] = $photo;
             continue;
@@ -552,7 +544,7 @@ function matchPhotosToTrack($photos, $trackpoints) {
             }
         }
 
-        // 3) Otherwise, try to match based on timestamp to trackpoints
+        // 3) Timestamp matching — adjusted for camera clock offset vs GPX UTC
         if (empty($photo['timestamp'])) {
             continue;
         }
@@ -562,7 +554,7 @@ function matchPhotosToTrack($photos, $trackpoints) {
 
         foreach ($trackpoints as $point) {
             if (empty($point['time'])) continue;
-            $diff = abs($photo['timestamp'] - $point['time']);
+            $diff = abs(($photo['timestamp'] + $clockOffset) - $point['time']);
             if ($diff < $minDiff) {
                 $minDiff = $diff;
                 $closestPoint = $point;
@@ -580,23 +572,71 @@ function matchPhotosToTrack($photos, $trackpoints) {
 }
 
 /**
- * Find the sort key for a photo located by GPS coordinates.
- * Returns the nearest trackpoint's timestamp, or its index if timestamps are absent.
+ * Find the sort key for a photo along the track.
+ * When lat/lon are provided, finds the nearest trackpoint spatially.
+ * When only a UTC timestamp is provided, finds the nearest trackpoint by time.
+ * Returns the matched trackpoint's UTC timestamp (comparable across both modes).
  */
-function findTrackSortKey($lat, $lon, $trackpoints) {
-    $minDist  = PHP_INT_MAX;
+function findTrackSortKey($lat, $lon, $trackpoints, $utcTimestamp = null) {
     $bestPoint = null;
-    $bestIdx  = -1;
-    foreach ($trackpoints as $idx => $point) {
-        $dist = haversineDistance($lat, $lon, $point['lat'], $point['lon']);
-        if ($dist < $minDist) {
-            $minDist  = $dist;
-            $bestPoint = $point;
-            $bestIdx  = $idx;
+
+    if ($lat !== null && $lon !== null) {
+        $minDist = PHP_INT_MAX;
+        foreach ($trackpoints as $point) {
+            $dist = haversineDistance($lat, $lon, $point['lat'], $point['lon']);
+            if ($dist < $minDist) {
+                $minDist   = $dist;
+                $bestPoint = $point;
+            }
+        }
+    } elseif ($utcTimestamp !== null) {
+        $minDiff = PHP_INT_MAX;
+        foreach ($trackpoints as $point) {
+            if (empty($point['time'])) continue;
+            $diff = abs($utcTimestamp - $point['time']);
+            if ($diff < $minDiff) {
+                $minDiff   = $diff;
+                $bestPoint = $point;
+            }
         }
     }
+
     if ($bestPoint === null) return null;
-    return $bestPoint['time'] ?? $bestIdx;
+    return $bestPoint['time'] ?? null;
+}
+
+/**
+ * Compute the clock offset (in seconds) between photo EXIF timestamps and GPX UTC times.
+ * Uses photos that have both GPS and a timestamp as ground-truth references:
+ * offset = (nearest trackpoint time by GPS distance) - (photo EXIF timestamp).
+ * Returns the median offset; 0 if no reliable references are found.
+ */
+function computeClockOffset(array $photos, array $trackpoints): int {
+    if (empty($trackpoints)) return 0;
+
+    $offsets = [];
+    foreach ($photos as $photo) {
+        if (empty($photo['lat']) || empty($photo['lon']) || empty($photo['timestamp'])) continue;
+
+        $minDist  = PHP_INT_MAX;
+        $bestTime = null;
+        foreach ($trackpoints as $tp) {
+            if (empty($tp['time'])) continue;
+            $dist = haversineDistance($photo['lat'], $photo['lon'], $tp['lat'], $tp['lon']);
+            if ($dist < $minDist) {
+                $minDist  = $dist;
+                $bestTime = $tp['time'];
+            }
+        }
+        // Only use photos whose GPS is within 200 m of the track
+        if ($bestTime !== null && $minDist < 0.2) {
+            $offsets[] = $bestTime - $photo['timestamp'];
+        }
+    }
+
+    if (empty($offsets)) return 0;
+    sort($offsets);
+    return $offsets[(int)(count($offsets) / 2)];
 }
 
 /**
