@@ -90,7 +90,7 @@ $elevationJson = esc(json_encode($elevationProfile), 'attr');
             <!-- Days (multi-day trips only) -->
             <?php if ($gpxStats && ($gpxStats['days'] ?? 1) > 1): ?>
                 <div class="ride-stat">
-                    <span class="ride-stat-label">Days</span>
+                    <span class="ride-stat-label">Routes</span>
                     <span class="ride-stat-value"><?= $gpxStats['days'] ?></span>
                 </div>
             <?php endif ?>
