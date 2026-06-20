@@ -1,5 +1,54 @@
 title: Site
 
-sections:
-  pages:
-    type: pages
+tabs:
+  content:
+    label: Site
+    sections:
+      pages:
+        type: pages
+
+  privacy:
+    label: Privacy
+    sections:
+      privacySettings:
+        type: fields
+        fields:
+          privacyHeading:
+            label: Privacy Zones
+            type: headline
+
+          privacyInfo:
+            type: info
+            text: "Trackpoints and photo markers within these zones are hidden on all adventure maps. Tour stats (distance, elevation, time) are unaffected."
+
+          privacyRadius:
+            label: Zone Radius (meters)
+            type: number
+            step: 10
+            default: 500
+            min: 50
+            max: 5000
+            width: 1/3
+            help: Single radius applied to all zones.
+
+          privacyZones:
+            label: Zones
+            type: structure
+            fields:
+              label:
+                label: Label
+                type: text
+                placeholder: "Home"
+                width: 1/3
+              lat:
+                label: Latitude
+                type: number
+                step: 0.000001
+                placeholder: "52.520008"
+                width: 1/3
+              lon:
+                label: Longitude
+                type: number
+                step: 0.000001
+                placeholder: "13.404954"
+                width: 1/3

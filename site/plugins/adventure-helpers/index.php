@@ -104,7 +104,10 @@ Kirby::plugin('cycling/adventure-helpers', [
                 }
             }
 
-            return matchPhotosToTrack($photos, $allTrackpoints);
+            $matched = matchPhotosToTrack($photos, $allTrackpoints);
+
+            $privacy = loadPrivacyZones($this->slug());
+            return filterPhotosForPrivacy($matched, $privacy['zones'], $privacy['radius']);
         },
 
         /**
@@ -115,18 +118,20 @@ Kirby::plugin('cycling/adventure-helpers', [
             if ($gpxFiles->count() === 0) {
                 return [];
             }
-            $colors = ['#2563eb', '#16a34a', '#d97706', '#7c3aed', '#e11d48'];
-            $tracks = [];
-            $index  = 0;
+            $privacy = loadPrivacyZones($this->slug());
+            $colors  = ['#2563eb', '#16a34a', '#d97706', '#7c3aed', '#e11d48'];
+            $tracks  = [];
+            $index   = 0;
             foreach ($gpxFiles as $gpxFile) {
                 $parsed = parseGPX($gpxFile->root());
                 if ($parsed) {
+                    $pts = filterTrackpointsForPrivacy($parsed['trackpoints'], $privacy['zones'], $privacy['radius']);
                     $tracks[] = [
                         'index'       => $index,
                         'color'       => $colors[$index % count($colors)],
-                        'trackpoints' => $parsed['trackpoints'],
+                        'trackpoints' => $pts,
                         'stats'       => $parsed['stats'],
-                        'bounds'      => $parsed['bounds'],
+                        'bounds'      => calculateBounds($pts) ?? $parsed['bounds'],
                     ];
                     $index++;
                 }
@@ -688,4 +693,77 @@ function calculateBounds($trackpoints) {
         'min_lon' => min($lons),
         'max_lon' => max($lons)
     ];
+}
+
+/**
+ * Load privacy zones from site settings, applying a per-tour deterministic random offset
+ * to each zone center. The offset prevents reverse-triangulation of the true address by
+ * ensuring the cut point varies across tours (±150 m, derived from md5 of page slug).
+ */
+function loadPrivacyZones(string $pageSlug): array {
+    $site     = kirby()->site();
+    $rawZones = [];
+    foreach ($site->privacyZones()->toStructure() as $z) {
+        $lat = floatval((string)$z->lat());
+        $lon = floatval((string)$z->lon());
+        if ($lat && $lon) {
+            $rawZones[] = ['lat' => $lat, 'lon' => $lon];
+        }
+    }
+    $radius = floatval((string)$site->privacyRadius()) ?: 500;
+
+    $offsetZones = [];
+    foreach ($rawZones as $i => $zone) {
+        $hash   = md5($pageSlug . '_zone_' . $i);
+        $latM   = (hexdec(substr($hash, 0, 8)) / 0xFFFFFFFF - 0.5) * 2 * 150;
+        $lonM   = (hexdec(substr($hash, 8, 8)) / 0xFFFFFFFF - 0.5) * 2 * 150;
+        $latDeg = $latM / 111320;
+        $lonDeg = $lonM / (111320 * cos(deg2rad($zone['lat'])));
+        $offsetZones[] = [
+            'lat' => $zone['lat'] + $latDeg,
+            'lon' => $zone['lon'] + $lonDeg,
+        ];
+    }
+
+    return ['zones' => $offsetZones, 'radius' => $radius];
+}
+
+/**
+ * Check whether a point (with 'lat'/'lon' keys) falls within the radius of any privacy zone.
+ * Radius is in meters; haversineDistance returns km.
+ */
+function isInAnyZone(array $point, array $zones, float $radius): bool {
+    $radiusKm = $radius / 1000;
+    foreach ($zones as $zone) {
+        if (haversineDistance($point['lat'], $point['lon'], $zone['lat'], $zone['lon']) <= $radiusKm) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Strip leading and trailing trackpoints that fall inside any privacy zone.
+ * Points in the middle of the route are never removed even if they pass through a zone.
+ */
+function filterTrackpointsForPrivacy(array $trackpoints, array $zones, float $radius): array {
+    if (empty($zones) || empty($trackpoints)) return $trackpoints;
+    $start = 0;
+    $end   = count($trackpoints) - 1;
+    while ($start <= $end && isInAnyZone($trackpoints[$start], $zones, $radius)) $start++;
+    while ($end >= $start && isInAnyZone($trackpoints[$end],   $zones, $radius)) $end--;
+    if ($start > $end) return [];
+    return array_slice($trackpoints, $start, $end - $start + 1);
+}
+
+/**
+ * Remove photos whose GPS coordinates fall inside any privacy zone.
+ * Photos without coordinates are kept (they don't appear on the map anyway).
+ */
+function filterPhotosForPrivacy(array $photos, array $zones, float $radius): array {
+    if (empty($zones)) return $photos;
+    return array_values(array_filter($photos, function($photo) use ($zones, $radius) {
+        if (empty($photo['lat']) || empty($photo['lon'])) return true;
+        return !isInAnyZone(['lat' => $photo['lat'], 'lon' => $photo['lon']], $zones, $radius);
+    }));
 }

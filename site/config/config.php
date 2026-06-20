@@ -13,9 +13,26 @@ return [
         'file.create:before' => function ($file, $upload) {
             // If it's a GPX file, we skip Kirby's internal mime check
             if ($upload->extension() === 'gpx') {
-                return; // Allow the upload to proceed
+                return;
             }
-        }
+        },
+        'page.update:after' => function ($newPage, $oldPage) {
+            if ($newPage->template()->name() !== 'adventure') return;
+            $newSlug = \Kirby\Toolkit\Str::slug($newPage->title()->value());
+            if ($newSlug && $newSlug !== $newPage->slug()) {
+                $newPage->changeSlug($newSlug);
+            }
+        },
+        'file.create:after' => function ($file) {
+            if ($file->extension() !== 'gpx') return;
+            $page = $file->parent();
+            if (!$page || $page->template()->name() !== 'adventure') return;
+
+            $content = file_get_contents($file->root());
+            if (preg_match('/<time>(\d{4}-\d{2}-\d{2})/', $content, $m)) {
+                $page->update(['date' => $m[1]]);
+            }
+        },
     ],
     'components' => [
         'file::type' => function ($kirby, $extension) {
