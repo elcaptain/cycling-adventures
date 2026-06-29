@@ -208,6 +208,9 @@ return [
                 // Don't cache the panel
                 return $page->kirby()->user() !== null;
             }
+        ],
+        'adventure-helpers' => [
+            'type' => 'file'
         ]
     ]
 ];

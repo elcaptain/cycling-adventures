@@ -38,7 +38,7 @@ Kirby::plugin('cycling/adventure-helpers', [
             $photoData = [];
 
             foreach ($photos as $photo) {
-                $exif = getPhotoExif($photo->root());
+                $exif = cachedGetPhotoExif($photo->root());
 
                 $timestamp = null;
                 $lat = null;
@@ -114,29 +114,32 @@ Kirby::plugin('cycling/adventure-helpers', [
          * Get GPX data for all uploaded GPX files, one entry per file/day
          */
         'gpxDataAll' => function() {
-            $gpxFiles = $this->files()->filterBy('extension', 'gpx');
-            if ($gpxFiles->count() === 0) {
-                return [];
-            }
-            $privacy = loadPrivacyZones($this->slug());
-            $colors  = ['#2563eb', '#16a34a', '#d97706', '#7c3aed', '#e11d48'];
-            $tracks  = [];
-            $index   = 0;
-            foreach ($gpxFiles as $gpxFile) {
-                $parsed = parseGPX($gpxFile->root());
-                if ($parsed) {
-                    $pts = filterTrackpointsForPrivacy($parsed['trackpoints'], $privacy['zones'], $privacy['radius']);
-                    $tracks[] = [
-                        'index'       => $index,
-                        'color'       => $colors[$index % count($colors)],
-                        'trackpoints' => $pts,
-                        'stats'       => $parsed['stats'],
-                        'bounds'      => calculateBounds($pts) ?? $parsed['bounds'],
-                    ];
-                    $index++;
+            $page = $this;
+            return gpxDataAllMemo($this->id(), function() use ($page) {
+                $gpxFiles = $page->files()->filterBy('extension', 'gpx');
+                if ($gpxFiles->count() === 0) {
+                    return [];
                 }
-            }
-            return $tracks;
+                $privacy = loadPrivacyZones($page->slug());
+                $colors  = ['#2563eb', '#16a34a', '#d97706', '#7c3aed', '#e11d48'];
+                $tracks  = [];
+                $index   = 0;
+                foreach ($gpxFiles as $gpxFile) {
+                    $parsed = cachedParseGPX($gpxFile->root());
+                    if ($parsed) {
+                        $pts = filterTrackpointsForPrivacy($parsed['trackpoints'], $privacy['zones'], $privacy['radius']);
+                        $tracks[] = [
+                            'index'       => $index,
+                            'color'       => $colors[$index % count($colors)],
+                            'trackpoints' => $pts,
+                            'stats'       => $parsed['stats'],
+                            'bounds'      => calculateBounds($pts) ?? $parsed['bounds'],
+                        ];
+                        $index++;
+                    }
+                }
+                return $tracks;
+            });
         },
 
         /**
@@ -693,6 +696,61 @@ function calculateBounds($trackpoints) {
         'min_lon' => min($lons),
         'max_lon' => max($lons)
     ];
+}
+
+/**
+ * Per-request memoization for gpxDataAll().
+ * Stores results in a static array keyed by page ID so that the three calls per
+ * adventure page load (gpxAggregatedStats, direct, matchedPhotos) only parse once.
+ */
+function gpxDataAllMemo(string $pageId, callable $compute): array {
+    static $cache = [];
+    if (!array_key_exists($pageId, $cache)) {
+        $cache[$pageId] = $compute();
+    }
+    return $cache[$pageId];
+}
+
+/**
+ * Cross-request cached wrapper for parseGPX().
+ * Cache key = md5(path) + mtime, so replacing a GPX file automatically invalidates.
+ */
+function cachedParseGPX(string $gpxPath): ?array {
+    $mtime = @filemtime($gpxPath);
+    if ($mtime === false) return parseGPX($gpxPath);
+
+    $cacheKey = 'gpx_' . md5($gpxPath) . '_' . $mtime;
+    $cache    = kirby()->cache('adventure-helpers');
+
+    $cached = $cache->get($cacheKey);
+    if ($cached !== null) return $cached;
+
+    $result = parseGPX($gpxPath);
+    if ($result !== null) {
+        $cache->set($cacheKey, $result, 0);
+    }
+    return $result;
+}
+
+/**
+ * Cross-request cached wrapper for getPhotoExif().
+ * Uses ['__none__' => true] sentinel to cache null results (photo has no EXIF).
+ */
+function cachedGetPhotoExif(string $photoPath): ?array {
+    $mtime = @filemtime($photoPath);
+    if ($mtime === false) return getPhotoExif($photoPath);
+
+    $cacheKey = 'exif_' . md5($photoPath) . '_' . $mtime;
+    $cache    = kirby()->cache('adventure-helpers');
+
+    $cached = $cache->get($cacheKey);
+    if ($cached !== null) {
+        return isset($cached['__none__']) ? null : $cached;
+    }
+
+    $result = getPhotoExif($photoPath);
+    $cache->set($cacheKey, $result ?? ['__none__' => true], 0);
+    return $result;
 }
 
 /**
