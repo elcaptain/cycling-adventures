@@ -10,8 +10,10 @@
     <meta name="description" content="<?= $page->description() ?>">
     <?php endif ?>
     
+    <?php if ($page->template()->name() === 'adventure'): ?>
     <!-- Leaflet CSS (for maps) -->
     <link rel="stylesheet" href="<?= url('assets/js/vendor/leaflet/leaflet.css') ?>">
+    <?php endif ?>
 
     <!-- Fonts: Inter (body) + DynaPuff (display/headings) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

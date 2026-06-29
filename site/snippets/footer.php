@@ -9,6 +9,7 @@
         </div>
     </footer>
 
+    <?php if ($page->template()->name() === 'adventure'): ?>
     <!-- Leaflet JS -->
     <script src="<?= url('assets/js/vendor/leaflet/leaflet.js') ?>"></script>
 
@@ -18,6 +19,7 @@
     <!-- Custom JS -->
     <script src="<?= url('assets/js/adventure-map.js') ?>"></script>
     <script src="<?= url('assets/js/elevation-profile.js') ?>"></script>
+    <?php endif ?>
 
 </body>
 </html>

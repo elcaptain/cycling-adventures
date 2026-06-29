@@ -28,9 +28,56 @@ return [
             $page = $file->parent();
             if (!$page || $page->template()->name() !== 'adventure') return;
 
+            // Set date from first GPX timestamp
             $content = file_get_contents($file->root());
             if (preg_match('/<time>(\d{4}-\d{2}-\d{2})/', $content, $m)) {
                 $page->update(['date' => $m[1]]);
+            }
+
+            // Cache aggregated stats in content fields so the list page skips GPX parsing
+            $stats = $page->gpxAggregatedStats();
+            if ($stats) {
+                $page->update([
+                    'distance'   => $stats['distance'],
+                    'elevation'  => $stats['elevation_gain'],
+                    'movingtime' => $stats['moving_time_formatted'],
+                    'duration'   => $stats['duration_formatted'],
+                    'avgspeed'   => $stats['avg_speed'],
+                ]);
+            }
+        },
+        'file.replace:after' => function ($newFile, $oldFile) {
+            if ($newFile->extension() !== 'gpx') return;
+            $page = $newFile->parent();
+            if (!$page || $page->template()->name() !== 'adventure') return;
+
+            $stats = $page->gpxAggregatedStats();
+            if ($stats) {
+                $page->update([
+                    'distance'   => $stats['distance'],
+                    'elevation'  => $stats['elevation_gain'],
+                    'movingtime' => $stats['moving_time_formatted'],
+                    'duration'   => $stats['duration_formatted'],
+                    'avgspeed'   => $stats['avg_speed'],
+                ]);
+            }
+        },
+        'file.delete:after' => function ($file) {
+            if ($file->extension() !== 'gpx') return;
+            $page = $file->parent();
+            if (!$page || $page->template()->name() !== 'adventure') return;
+
+            $stats = $page->gpxAggregatedStats();
+            if ($stats) {
+                $page->update([
+                    'distance'   => $stats['distance'],
+                    'elevation'  => $stats['elevation_gain'],
+                    'movingtime' => $stats['moving_time_formatted'],
+                    'duration'   => $stats['duration_formatted'],
+                    'avgspeed'   => $stats['avg_speed'],
+                ]);
+            } else {
+                $page->update(['distance' => '', 'elevation' => '', 'movingtime' => '', 'duration' => '', 'avgspeed' => '']);
             }
         },
     ],

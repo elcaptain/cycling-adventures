@@ -20,6 +20,7 @@
                 srcset="<?= $coverImage->srcset([400, 800, 1200]) ?>"
                 alt="<?= $adventure->title() ?>"
                 class="adventure-card-image"
+                loading="lazy"
                 <?= $focus ? 'style="object-position: ' . $focus . '"' : '' ?>
             >
         </a>
@@ -46,10 +47,9 @@
 
             <!-- Distance / Elevation / Days -->
             <?php
-                $gpxStats  = $adventure->gpxAggregatedStats();
-                $adistance = $gpxStats['distance'] ?? ($adventure->distance()->isNotEmpty() ? $adventure->distance() : null);
-                $aelev     = $gpxStats['elevation_gain'] ?? ($adventure->elevation()->isNotEmpty() ? $adventure->elevation() : null);
-                $adays     = $gpxStats['days'] ?? 1;
+                $adistance = $adventure->distance()->isNotEmpty()  ? $adventure->distance()  : null;
+                $aelev     = $adventure->elevation()->isNotEmpty() ? $adventure->elevation() : null;
+                $adays     = $adventure->files()->filterBy('extension', 'gpx')->count() ?: 1;
             ?>
             <?php if ($adistance): ?>
             <span class="flex items-center gap-1">
