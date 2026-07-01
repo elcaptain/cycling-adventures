@@ -210,6 +210,10 @@
   @apply col-span-1;
 }
 
+.collection-route-card {
+  margin-bottom: 20px;
+}
+
 .adventure-right-column {
   @apply col-span-1;
 }

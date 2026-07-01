@@ -40,7 +40,11 @@ $pagination = $paginatedAdventures ? $paginatedAdventures->pagination() : null;
 <?php if ($paginatedAdventures && $paginatedAdventures->count() > 0): ?>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
         <?php foreach ($paginatedAdventures as $adventure): ?>
-            <?php snippet('adventure-card', ['adventure' => $adventure]) ?>
+            <?php if ($adventure->template()->name() === 'collection'): ?>
+                <?php snippet('collection-card', ['collection' => $adventure]) ?>
+            <?php else: ?>
+                <?php snippet('adventure-card', ['adventure' => $adventure]) ?>
+            <?php endif ?>
         <?php endforeach ?>
     </div>
 

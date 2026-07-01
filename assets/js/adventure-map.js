@@ -22,6 +22,9 @@
     var _tracks = null;
     var _hoverMarker = null;
     var _suppressElevationHover = false;
+    var _hideEndpoints = false;
+    var _trackLines = {}; // trackIndex → Leaflet polyline (used by highlightTrackRange)
+    var _photoHoverMarker = null;
 
     document.addEventListener('DOMContentLoaded', function() {
         initializeAdventureMap();
@@ -36,6 +39,7 @@
 
         var tracksData = mapContainer.getAttribute('data-tracks');
         var photosData = mapContainer.getAttribute('data-photos');
+        _hideEndpoints = mapContainer.dataset.hideEndpoints === 'true';
 
         if (!tracksData) {
             console.warn('No tracks data found');
@@ -154,7 +158,7 @@
             });
 
             // White outline for legibility against any tile background
-            L.polyline(latLngs, {
+            var outlineLine = L.polyline(latLngs, {
                 color: '#ffffff',
                 weight: 8,
                 opacity: 1,
@@ -168,9 +172,12 @@
                 opacity: 1,
                 smoothFactor: 1
             }).addTo(map);
+            _trackLines[track.index] = { outline: outlineLine, inner: line };
 
             line.on('mouseover', function() {
                 this.setStyle({ weight: 7 });
+                outlineLine.bringToFront();
+                this.bringToFront();
                 document.dispatchEvent(new CustomEvent('trackHighlight', {
                     detail: { trackIndex: track.index }
                 }));
@@ -203,22 +210,24 @@
             });
         });
 
-        // Start marker on first point of first track, finish on last point of last track
-        var firstTrack = tracks[0];
-        var lastTrack  = tracks[tracks.length - 1];
+        // Start/finish markers — skipped when data-hide-endpoints is set (e.g. collections)
+        if (!_hideEndpoints) {
+            var firstTrack = tracks[0];
+            var lastTrack  = tracks[tracks.length - 1];
 
-        if (firstTrack.trackpoints.length > 0) {
-            var sp = firstTrack.trackpoints[0];
-            L.marker([sp.lat, sp.lon], { icon: createSvgIcon('start') })
-             .addTo(map)
-             .bindPopup('<strong>Start</strong>');
-        }
+            if (firstTrack.trackpoints.length > 0) {
+                var sp = firstTrack.trackpoints[0];
+                L.marker([sp.lat, sp.lon], { icon: createSvgIcon('start') })
+                 .addTo(map)
+                 .bindPopup('<strong>Start</strong>');
+            }
 
-        if (lastTrack.trackpoints.length > 0) {
-            var ep = lastTrack.trackpoints[lastTrack.trackpoints.length - 1];
-            L.marker([ep.lat, ep.lon], { icon: createSvgIcon('end') })
-             .addTo(map)
-             .bindPopup('<strong>Finish</strong>');
+            if (lastTrack.trackpoints.length > 0) {
+                var ep = lastTrack.trackpoints[lastTrack.trackpoints.length - 1];
+                L.marker([ep.lat, ep.lon], { icon: createSvgIcon('end') })
+                 .addTo(map)
+                 .bindPopup('<strong>Finish</strong>');
+            }
         }
     }
 
@@ -376,5 +385,43 @@
         });
         new Recenter().addTo(map);
     }
+
+    // Public API — used by collection-cards.js to dim/restore tracks and show photo markers
+    window.adventureMap = {
+        showPhotoMarker: function(lat, lon) {
+            if (!_map) return;
+            if (!_photoHoverMarker) {
+                _photoHoverMarker = L.marker([lat, lon], { icon: createSvgIcon('photo') });
+            } else {
+                _photoHoverMarker.setLatLng([lat, lon]);
+            }
+            if (!_map.hasLayer(_photoHoverMarker)) _photoHoverMarker.addTo(_map);
+        },
+        hidePhotoMarker: function() {
+            if (_photoHoverMarker && _map && _map.hasLayer(_photoHoverMarker)) {
+                _map.removeLayer(_photoHoverMarker);
+            }
+        },
+        highlightTrackRange: function(globalOffset, trackCount, active) {
+            var endIndex = globalOffset + trackCount;
+            Object.keys(_trackLines).forEach(function(idxStr) {
+                var idx   = parseInt(idxStr, 10);
+                var entry = _trackLines[idx];
+                if (!entry) return;
+                var inCard = idx >= globalOffset && idx < endIndex;
+                if (active) {
+                    entry.inner.setStyle({ opacity: inCard ? 1 : 0.25 });
+                    entry.outline.setStyle({ opacity: inCard ? 1 : 0.1 });
+                    if (inCard) {
+                        entry.outline.bringToFront();
+                        entry.inner.bringToFront();
+                    }
+                } else {
+                    entry.inner.setStyle({ opacity: 1 });
+                    entry.outline.setStyle({ opacity: 1 });
+                }
+            });
+        }
+    };
 
 })();

@@ -13,7 +13,9 @@ options:
 sections:
   adventures:
     type: pages
-    template: adventure
+    templates:
+      - adventure
+      - collection
     sortBy: date desc
     status: all
-    label: adventures
+    label: Adventures & Collections
