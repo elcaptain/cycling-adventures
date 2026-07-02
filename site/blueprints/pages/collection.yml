@@ -57,14 +57,14 @@ columns:
           routes:
             label: Routes
             type: pages
-            query: site.find('adventures').childrenAndDrafts
+            query: site.find('adventures').children
             multiple: true
             search: true
             image:
               query: page.images.first
               ratio: 3/2
               cover: true
-            help: Select adventures to include. Set each adventure to "Unlisted" (not Draft) to hide it from the main feed.
+            help: "Set each adventure to Unlisted status to hide it from the main feed. Do not use Draft — draft pages are invisible to the collection and will cause routes to disappear."
 
   sidebar:
     width: 1/3

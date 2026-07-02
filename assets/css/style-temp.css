@@ -35,6 +35,11 @@
   .adventure-card {
     @apply bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300;
   }
+  .adventure-card .elevation-profile-sidebar {
+    box-shadow: none;
+    padding: 0;
+    height: 160px;
+  }
   .adventure-card-image {
     @apply w-full h-64 object-cover;
   }
@@ -240,7 +245,7 @@
 .elevation-profile-sidebar {
   flex-shrink: 0;
   height: 185px;
-  background: #fff9f2;
+  background: #ffffff;
   border-radius: 0.5rem;
   box-shadow: 0 4px 7.5px rgba(0, 0, 0, 0.08);
   padding: 0.625rem 1rem 0.5rem;

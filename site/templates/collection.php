@@ -1,8 +1,12 @@
 <?php
 snippet('header');
 
-// Resolve referenced route pages and apply sort order
-$routePages = $page->routes()->toPages();
+// Resolve referenced route pages and apply sort order.
+// Draft pages are excluded — they break toPages() resolution and cause URL renumbering.
+// Routes should be set to Unlisted (hidden from feed, but stable URLs and accessible here).
+$routePages = $page->routes()->toPages()->filter(function($p) {
+    return $p->status() !== 'draft';
+});
 $sortDir    = $page->sortorder()->toBool() ? 'desc' : 'asc';
 $routePages = $routePages->sortBy('date', $sortDir);
 

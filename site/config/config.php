@@ -17,10 +17,26 @@ return [
             }
         },
         'page.update:after' => function ($newPage, $oldPage) {
-            if ($newPage->template()->name() !== 'adventure') return;
+            static $patching = false;
+            if ($patching || $newPage->template()->name() !== 'adventure') return;
+
+            // Auto-slug from title
             $newSlug = \Kirby\Toolkit\Str::slug($newPage->title()->value());
             if ($newSlug && $newSlug !== $newPage->slug()) {
                 $newPage->changeSlug($newSlug);
+            }
+
+            // Sync date from first GPX trackpoint if it doesn't match what's stored.
+            // This runs after every Panel save, so the GPX date always wins over
+            // the Panel form's default (today) without requiring a separate upload step.
+            $gpxFile = $newPage->gpxfile()->toFile();
+            if ($gpxFile) {
+                $raw = file_get_contents($gpxFile->root());
+                if (preg_match('/<time>(\d{4}-\d{2}-\d{2})/', $raw, $m) && $newPage->date()->value() !== $m[1]) {
+                    $patching = true;
+                    $newPage->update(['date' => $m[1]]);
+                    $patching = false;
+                }
             }
         },
         'file.create:after' => function ($file) {
@@ -28,22 +44,32 @@ return [
             $page = $file->parent();
             if (!$page || $page->template()->name() !== 'adventure') return;
 
-            // Set date from first GPX timestamp
+            $updates = [];
+
+            // Date from first GPX timestamp
             $content = file_get_contents($file->root());
             if (preg_match('/<time>(\d{4}-\d{2}-\d{2})/', $content, $m)) {
-                $page->update(['date' => $m[1]]);
+                $updates['date'] = $m[1];
             }
 
-            // Cache aggregated stats in content fields so the list page skips GPX parsing
+            // Cache aggregated stats so the list page skips GPX parsing
             $stats = $page->gpxAggregatedStats();
             if ($stats) {
-                $page->update([
-                    'distance'   => $stats['distance'],
-                    'elevation'  => $stats['elevation_gain'],
-                    'movingtime' => $stats['moving_time_formatted'],
-                    'duration'   => $stats['duration_formatted'],
-                    'avgspeed'   => $stats['avg_speed'],
-                ]);
+                $updates['distance']   = $stats['distance'];
+                $updates['elevation']  = $stats['elevation_gain'];
+                $updates['movingtime'] = $stats['moving_time_formatted'];
+                $updates['duration']   = $stats['duration_formatted'];
+                $updates['avgspeed']   = $stats['avg_speed'];
+            }
+
+            if (!empty($updates)) {
+                $newPage = $page->update($updates);
+                // Also patch the Panel's changes version so a subsequent Save
+                // doesn't overwrite our values with the stale form state
+                $changes = $newPage->version('changes');
+                if ($changes->exists()) {
+                    $changes->update($updates);
+                }
             }
         },
         'file.replace:after' => function ($newFile, $oldFile) {
@@ -51,15 +77,20 @@ return [
             $page = $newFile->parent();
             if (!$page || $page->template()->name() !== 'adventure') return;
 
-            $stats = $page->gpxAggregatedStats();
+            $stats = $newFile->parent()->gpxAggregatedStats();
             if ($stats) {
-                $page->update([
+                $updates = [
                     'distance'   => $stats['distance'],
                     'elevation'  => $stats['elevation_gain'],
                     'movingtime' => $stats['moving_time_formatted'],
                     'duration'   => $stats['duration_formatted'],
                     'avgspeed'   => $stats['avg_speed'],
-                ]);
+                ];
+                $newPage = $page->update($updates);
+                $changes = $newPage->version('changes');
+                if ($changes->exists()) {
+                    $changes->update($updates);
+                }
             }
         },
         'file.delete:after' => function ($file) {
@@ -68,16 +99,18 @@ return [
             if (!$page || $page->template()->name() !== 'adventure') return;
 
             $stats = $page->gpxAggregatedStats();
-            if ($stats) {
-                $page->update([
-                    'distance'   => $stats['distance'],
-                    'elevation'  => $stats['elevation_gain'],
-                    'movingtime' => $stats['moving_time_formatted'],
-                    'duration'   => $stats['duration_formatted'],
-                    'avgspeed'   => $stats['avg_speed'],
-                ]);
-            } else {
-                $page->update(['distance' => '', 'elevation' => '', 'movingtime' => '', 'duration' => '', 'avgspeed' => '']);
+            $updates = $stats ? [
+                'distance'   => $stats['distance'],
+                'elevation'  => $stats['elevation_gain'],
+                'movingtime' => $stats['moving_time_formatted'],
+                'duration'   => $stats['duration_formatted'],
+                'avgspeed'   => $stats['avg_speed'],
+            ] : ['distance' => '', 'elevation' => '', 'movingtime' => '', 'duration' => '', 'avgspeed' => ''];
+
+            $newPage = $page->update($updates);
+            $changes = $newPage->version('changes');
+            if ($changes->exists()) {
+                $changes->update($updates);
             }
         },
     ],

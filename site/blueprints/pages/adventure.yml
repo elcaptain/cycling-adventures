@@ -6,9 +6,12 @@ status:
   draft:
     label: Draft
     text: The adventure is not yet published
+  unlisted:
+    label: In Collection
+    text: Hidden from the main feed, visible inside a collection
   listed:
     label: Published
-    text: The adventure is published
+    text: The adventure is published and visible in the main feed
 
 columns:
   main:
