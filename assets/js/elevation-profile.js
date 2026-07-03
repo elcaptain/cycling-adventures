@@ -195,7 +195,7 @@
                 if (active === null) {
                     ds.borderWidth = 2;
                 } else {
-                    ds.borderWidth = (i === active) ? 4 : 1;
+                    ds.borderWidth = (i === active) ? 4 : 2;
                 }
             });
             chart.update('none');

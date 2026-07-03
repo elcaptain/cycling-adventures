@@ -26,9 +26,10 @@ foreach ($routePages as $routePage) {
         'count'  => count($tracks),
     ];
     foreach ($tracks as $track) {
-        $track['color'] = $trackColors[$globalTrackIndex % count($trackColors)];
-        $track['index'] = $globalTrackIndex++;
-        $allTracks[]    = $track;
+        $track['color']     = $trackColors[$globalTrackIndex % count($trackColors)];
+        $track['index']     = $globalTrackIndex++;
+        $track['routeName'] = $routePage->title()->value();
+        $allTracks[]        = $track;
     }
 }
 

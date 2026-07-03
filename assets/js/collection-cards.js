@@ -175,7 +175,7 @@
                     } else if (ownsActive) {
                         ds.borderWidth = (entry.trackIndices[i] === active) ? 4 : 2;
                     } else {
-                        ds.borderWidth = 1;
+                        ds.borderWidth = 2;
                     }
                 });
                 entry.chart.update('none');

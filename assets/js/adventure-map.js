@@ -25,6 +25,7 @@
     var _hideEndpoints = false;
     var _trackLines = {}; // trackIndex → Leaflet polyline (used by highlightTrackRange)
     var _photoHoverMarker = null;
+    var _trackNameMarker  = null;
 
     document.addEventListener('DOMContentLoaded', function() {
         initializeAdventureMap();
@@ -178,6 +179,29 @@
                 this.setStyle({ weight: 7 });
                 outlineLine.bringToFront();
                 this.bringToFront();
+                Object.keys(_trackLines).forEach(function(idxStr) {
+                    var idx   = parseInt(idxStr, 10);
+                    var entry = _trackLines[idx];
+                    if (!entry) return;
+                    var isActive = idx === track.index;
+                    entry.inner.setStyle({ opacity: isActive ? 1 : 0.25 });
+                    entry.outline.setStyle({ opacity: isActive ? 1 : 0.1 });
+                });
+                if (track.routeName && latLngs.length > 0) {
+                    var labelIcon = L.divIcon({
+                        className: '',
+                        html: '<div style="background:rgba(0,0,0,0.72);color:#fff;padding:3px 8px;border-radius:4px;font-size:12px;width:200px;word-wrap:break-word;pointer-events:none">' + track.routeName + '</div>',
+                        iconSize: null,
+                        iconAnchor: [0, 0]
+                    });
+                    if (!_trackNameMarker) {
+                        _trackNameMarker = L.marker(latLngs[0], { icon: labelIcon, interactive: false }).addTo(_map);
+                    } else {
+                        _trackNameMarker.setLatLng(latLngs[0]);
+                        _trackNameMarker.setIcon(labelIcon);
+                        if (!_map.hasLayer(_trackNameMarker)) _trackNameMarker.addTo(_map);
+                    }
+                }
                 document.dispatchEvent(new CustomEvent('trackHighlight', {
                     detail: { trackIndex: track.index }
                 }));
@@ -185,6 +209,16 @@
 
             line.on('mouseout', function() {
                 this.setStyle({ weight: 4 });
+                Object.keys(_trackLines).forEach(function(idxStr) {
+                    var entry = _trackLines[parseInt(idxStr, 10)];
+                    if (entry) {
+                        entry.inner.setStyle({ opacity: 1 });
+                        entry.outline.setStyle({ opacity: 1 });
+                    }
+                });
+                if (_trackNameMarker && _map && _map.hasLayer(_trackNameMarker)) {
+                    _map.removeLayer(_trackNameMarker);
+                }
                 if (_map && _hoverMarker && _map.hasLayer(_hoverMarker)) {
                     _map.removeLayer(_hoverMarker);
                 }
