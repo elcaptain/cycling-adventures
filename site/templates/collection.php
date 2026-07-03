@@ -104,7 +104,14 @@ $totalElevation = round($totalElevation, 0);
             $routeOffset     = $routeTrackMap[$routePage->id()]['offset'];
             $routeTrackCount = $routeTrackMap[$routePage->id()]['count'];
             $routeStats      = $routePage->gpxAggregatedStats();
-            $routePhotos     = $routePage->galleryPhotosSorted();
+            $sortedPhotos    = $routePage->galleryPhotosSorted();
+            $coverFile       = $routePage->coverimage()->toFile();
+            if ($coverFile) {
+                $coverId    = $coverFile->id();
+                $sortedPhotos = array_values(array_filter($sortedPhotos, fn($p) => $p->id() !== $coverId));
+                array_unshift($sortedPhotos, $coverFile);
+            }
+            $routePhotos     = $sortedPhotos;
             $cardSlug        = $routePage->slug();
 
             // Build GPS lookup for photo strip hover markers
@@ -169,7 +176,7 @@ $totalElevation = round($totalElevation, 0);
 
             <!-- Route stats -->
             <?php if ($routeStats): ?>
-            <div class="daystats-stats mt-4">
+            <div class="daystats-stats">
                 <?php if (isset($routeStats['distance'])): ?>
                 <span class="ride-stat-value distance"><?= $routeStats['distance'] ?> km</span>
                 <?php endif ?>
@@ -219,7 +226,7 @@ $totalElevation = round($totalElevation, 0);
                     $photoGps = $matchedPhotoMap[$photoFile->filename()] ?? null;
                 ?>
                 <img
-                    src="<?= $photoFile->crop(300, 225)->url() ?>"
+                    src="<?= $photoFile->resize(300)->url() ?>"
                     alt="<?= $photoFile->alt() ?>"
                     class="h-32 w-auto flex-shrink-0 rounded-md object-cover"
                     loading="lazy"
