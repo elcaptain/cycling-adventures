@@ -204,7 +204,7 @@
 }
 
 .daystats-stats {
-  @apply flex flex-wrap gap-6;
+  @apply flex flex-wrap gap-x-6;
 }
 
 .daystats-stats .ride-stat-value {
