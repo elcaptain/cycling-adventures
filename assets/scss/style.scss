@@ -204,20 +204,22 @@
 }
 
 .daystats-stats {
-  @apply flex flex-wrap gap-x-6;
+  @apply flex flex-wrap gap-x-6 items-center;
 }
 
 .daystats-stats .ride-stat-value {
-  @apply text-base font-medium text-accent-900 block;
+  @apply text-base font-medium text-accent-900;
+  display: flex;
+  align-items: center;
   font-family: theme('fontFamily.sans');
-  line-height: 24px;
   font-size: 16px;
 }
 
 .daystats-stats .ride-stat-value::before {
+  display: block;
+  flex-shrink: 0;
   margin-right: 8px;
-  vertical-align: middle;
-  display: inline-flex;
+  line-height: 0;
 }
 
 .ride-stat-value.distance::before {
