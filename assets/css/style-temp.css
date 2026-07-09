@@ -63,8 +63,14 @@
     @apply text-accent-900 line-clamp-3;
   }
   .ride-stats {
-    @apply pt-6 mb-9 flex flex-wrap;
-    justify-content: space-between;
+    @apply pt-6 mb-9 flex flex-wrap gap-x-6;
+    justify-content: flex-start;
+  }
+  @screen md {
+    .ride-stats {
+      justify-content: space-between;
+      gap: 0;
+    }
   }
   .ride-stat {
     display: inline;
@@ -262,6 +268,12 @@
 
 .adventure-left-column {
   @apply col-span-1;
+  order: 2;
+}
+@screen md {
+  .adventure-left-column {
+    order: 1;
+  }
 }
 
 .collection-route-card {
@@ -274,6 +286,12 @@
 
 .adventure-right-column {
   @apply col-span-1;
+  order: 1;
+}
+@screen md {
+  .adventure-right-column {
+    order: 2;
+  }
 }
 
 .map-sticky-wrapper {

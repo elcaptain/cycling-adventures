@@ -35,16 +35,6 @@
                 <a href="<?= $site->url() ?>" class="font-display text-2xl font-bold text-accent-500 hover:text-accent-700 transition-colors no-underline">
                     <?= $site->title() ?>
                 </a>
-
-                <!-- Navigation -->
-                <ul class="flex gap-6">
-                    <li>
-                        <a href="<?= $site->url() ?>" class="text-accent-900 hover:text-accent-500 transition-colors no-underline">
-                            Adventures
-                        </a>
-                    </li>
-                    <!-- Add more navigation items if needed -->
-                </ul>
             </nav>
         </div>
     </header>
