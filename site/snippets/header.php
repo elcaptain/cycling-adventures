@@ -29,7 +29,7 @@
 <body class="bg-accent-50 text-accent-900 font-sans">
 
     <!-- Header -->
-    <header class="bg-white shadow-sm">
+    <header class="bg-white border-b border-accent-100">
         <div class="container mx-auto px-4 py-6">
             <nav class="flex items-center justify-between">
                 <a href="<?= $site->url() ?>" class="font-display text-2xl font-bold text-accent-500 hover:text-accent-700 transition-colors no-underline">

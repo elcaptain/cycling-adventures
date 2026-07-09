@@ -58,28 +58,28 @@ $elevationJson = esc(json_encode($elevationProfile), 'attr');
 
 <!-- Adventure Header -->
 <?php if ($page->layoutStyle()->toBool() === true): ?>
-<div class="max-w-7xl mx-auto mb-12 px-4">
+<div class="max-w-7xl mx-auto mb-12 md:px-4">
 <?php else: ?>
 <div class="max-w-4xl mx-auto mb-12">
 <?php endif ?>
     <div class="mb-4">
-        <a href="<?= $site->url() ?>" class="text-ride-primary hover:underline">
+        <a href="<?= $site->url() ?>" class="text-accent-600 hover:underline">
             &larr; Back to all adventures
         </a>
     </div>
 
-    <h1 class="text-5xl font-bold mb-4">
+    <h1 class="text-4xl md:text-5xl font-bold mb-4">
         <?= $page->title() ?>
     </h1>
 
-    <div class="flex items-center gap-4 text-gray-600">
+    <div class="flex items-center gap-4 text-accent-700">
         <time datetime="<?= $page->date()->toDate('Y-m-d') ?>">
             <?= $page->date()->toDate('F j, Y') ?>
         </time>
     </div>
 
     <?php if ($page->description()->isNotEmpty()): ?>
-        <p class="text-xl text-gray-600 mt-6">
+        <p class="text-xl text-accent-700 mt-6">
             <?= $page->description() ?>
         </p>
     <?php endif ?>
@@ -216,7 +216,7 @@ $elevationJson = esc(json_encode($elevationProfile), 'attr');
                             data-photo-filename="<?= $image->filename() ?>"
                         >
                         <?php if ($block->caption()->isNotEmpty()): ?>
-                            <figcaption class="text-sm text-gray-600 mt-2 text-center">
+                            <figcaption class="text-sm text-accent-700 mt-2 text-center">
                                 <?= $block->caption() ?>
                             </figcaption>
                         <?php endif ?>

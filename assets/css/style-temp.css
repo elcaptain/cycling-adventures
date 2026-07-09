@@ -33,7 +33,14 @@
 }
 @layer components {
   .adventure-card {
-    @apply bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300;
+    @apply bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300;
+  }
+  .adventure-card:hover {
+    @apply shadow-xl;
+    transform: translateY(-3px);
+  }
+  .adventure-card:hover .adventure-card-image {
+    transform: scale(1.04);
   }
   .adventure-card .elevation-profile-sidebar {
     box-shadow: none;
@@ -41,7 +48,7 @@
     height: 160px;
   }
   .adventure-card-image {
-    @apply w-full h-64 object-cover;
+    @apply w-full h-64 object-cover transition-transform duration-300;
   }
   .adventure-card-content {
     @apply p-6;
@@ -64,8 +71,14 @@
   }
   .ride-stat-value {
     @apply font-display font-medium text-accent-900;
-    font-size: 30px;
-    line-height: 36px;
+    font-size: 22px;
+    line-height: 28px;
+  }
+  @screen md {
+    .ride-stat-value {
+      font-size: 30px;
+      line-height: 36px;
+    }
   }
   .ride-stat-label {
     @apply text-accent-800 uppercase block;
@@ -78,9 +91,19 @@
   }
   .photo-gallery {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     row-gap: 20px;
     column-gap: 10px;
+  }
+  @screen md {
+    .photo-gallery {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  @screen lg {
+    .photo-gallery {
+      grid-template-columns: repeat(4, 1fr);
+    }
   }
   .photo-gallery-item {
     @apply relative overflow-hidden rounded-lg cursor-pointer;
@@ -102,12 +125,19 @@
     @apply mb-8;
   }
   .content-block-text {
-    @apply prose prose-lg max-w-none text-accent-900;
+    @apply prose max-w-none text-accent-900;
   }
   .content-block-text p {
     @apply mb-4;
-    line-height: 32px;
-    font-size: 18px;
+  }
+  @screen md {
+    .content-block-text {
+      @apply prose-lg;
+    }
+    .content-block-text p {
+      line-height: 32px;
+      font-size: 18px;
+    }
   }
   .content-block-text a {
     @apply text-spring-green hover:underline;
@@ -173,43 +203,60 @@
 }
 
 .daystats-stats .ride-stat-value {
-  @apply text-base font-medium text-accent-900;
+  @apply font-medium text-accent-900;
   display: flex;
   align-items: center;
   font-family: theme("fontFamily.sans");
-  font-size: 16px;
+  font-size: 14px;
+}
+@screen md {
+  .daystats-stats .ride-stat-value {
+    font-size: 16px;
+  }
 }
 
 .daystats-stats .ride-stat-value::before {
+  content: "";
   display: block;
   flex-shrink: 0;
-  margin-right: 8px;
-  line-height: 0;
+  width: 18px;
+  height: 18px;
+  margin-right: 6px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+@screen md {
+  .daystats-stats .ride-stat-value::before {
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+  }
 }
 
 .ride-stat-value.distance::before {
-  content: url(/assets/icons/icon-distance.svg);
+  background-image: url(/assets/icons/icon-distance.svg);
 }
 
 .ride-stat-value.elevation::before {
-  content: url(/assets/icons/icon-elevation.svg);
+  background-image: url(/assets/icons/icon-elevation.svg);
 }
 
 .ride-stat-value.moving-time::before {
-  content: url(/assets/icons/icon-time.svg);
+  background-image: url(/assets/icons/icon-time.svg);
 }
 
 .ride-stat-value.speed::before {
-  content: url(/assets/icons/icon-speed.svg);
+  background-image: url(/assets/icons/icon-speed.svg);
 }
 
 .adventure-two-column {
-  @apply grid grid-cols-1 gap-8 mx-auto px-4;
-  max-width: 90%;
+  @apply grid grid-cols-1 gap-8;
 }
 @screen md {
   .adventure-two-column {
-    @apply grid-cols-2;
+    @apply grid-cols-2 mx-auto px-4;
+    max-width: 90%;
   }
 }
 
@@ -219,6 +266,10 @@
 
 .collection-route-card {
   margin-bottom: 20px;
+  border: 1px solid transparent;
+}
+.collection-route-card:hover {
+  border-color: var(--track-color);
 }
 
 .adventure-right-column {
