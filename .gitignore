@@ -73,3 +73,8 @@ package-lock.json
 /tools/import
 /tools/import-config.json
 /tools/imported-tours.log
+
+# FTP deploy credentials
+# ---------------
+
+deploy.conf
