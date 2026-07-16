@@ -54,11 +54,15 @@ lftp -u "${FTP_USER},${FTP_PASS}" -p "${FTP_PORT}" "${FTP_HOST}" <<EOF
 set ftp:ssl-allow true
 set ssl:verify-certificate no
 mirror --reverse --only-newer --parallel=4 --verbose \
+    --exclude-glob .DS_Store \
     --exclude-glob assets/scss/ \
+    --exclude-glob style-temp.css \
     assets/ ${REMOTE_PATH}/assets/
 mirror --reverse --only-newer --parallel=4 --verbose \
+    --exclude-glob .DS_Store \
     kirby/ ${REMOTE_PATH}/kirby/
 mirror --reverse --only-newer --parallel=4 --verbose \
+    --exclude-glob .DS_Store \
     --exclude-glob cache/ \
     --exclude-glob sessions/ \
     --exclude-glob accounts/ \
