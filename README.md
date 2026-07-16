@@ -11,7 +11,7 @@ A modern cycling blog built with Kirby CMS, featuring interactive maps, GPX trac
 - **Flexible Content**: Use blocks to arrange text and images differently for each post
 - **Responsive Design**: Built with Tailwind CSS for all screen sizes
 - **Git Version Control**: Manage your site code with Git/GitHub
-- **FTP Deployment**: Simple deployment to any PHP hosting via FTP
+- **FTP Deployment**: One-command deployment to any PHP hosting via `deploy.sh` (lftp)
 
 ## Project Structure
 
@@ -34,6 +34,9 @@ cycling-adventures/
 │   ├── snippets/         # Reusable template parts
 │   └── templates/        # Page templates
 ├── package.json          # Node.js dependencies and build scripts
+├── deploy.sh             # FTP deployment script (see Deployment section)
+├── deploy.conf.example   # Template for deploy.sh credentials
+├── deploy.conf           # Your real FTP credentials (gitignored, not in git)
 └── README.md             # This file
 ```
 
@@ -42,7 +45,7 @@ cycling-adventures/
 - **PHP 8.0+** (for local development and server)
 - **Node.js 16+** and npm (for building CSS)
 - **Git** (for version control)
-- **FTP client** (for deployment)
+- **lftp** (for deployment via `deploy.sh`) — install with `brew install lftp`
 
 ## Installation & Setup
 
@@ -85,7 +88,7 @@ The Kirby Panel is where you'll create and manage your adventures.
 1. Start a local PHP server:
 
 ```bash
-php -S localhost:8000
+php -S localhost:8000 kirby/router.php
 ```
 
 2. Open http://localhost:8000/panel in your browser
@@ -143,7 +146,7 @@ Edit `site/config/config.php`:
 
 1. Start PHP server:
 ```bash
-php -S localhost:8000
+php -S localhost:8000 kirby/router.php
 ```
 
 2. In another terminal, watch for CSS changes:
@@ -215,36 +218,58 @@ git push
 
 ## Deployment via FTP
 
-### Preparing for Deployment
+Deployment is handled by `deploy.sh`, which builds the CSS, patches a copy of
+`site/config/config.php` for production, and syncs only new/changed files to
+your server over FTP with `lftp mirror --only-newer`. Your local
+`site/config/config.php` is never modified — it stays on `debug: true` and
+your local URL.
 
-1. Build production CSS:
+### One-Time Setup
+
+1. Install `lftp`:
 ```bash
-npm run build
+brew install lftp
 ```
 
-2. Your server needs:
-   - PHP 8.0 or higher
-   - mod_rewrite (Apache) or equivalent
-   - Write permissions for `media/`, `content/`, `site/cache/`, `site/sessions/`, `site/accounts/`
+2. Create your deploy config from the example:
+```bash
+cp deploy.conf.example deploy.conf
+```
 
-### FTP Upload
+3. Edit `deploy.conf` and fill in your details:
+```bash
+FTP_HOST=ftp.yourhost.com
+FTP_USER=your-ftp-username
+FTP_PASS=your-ftp-password
+FTP_PORT=21
+REMOTE_PATH=/httpdocs        # path on the server where index.php lives
+PRODUCTION_URL=https://www.yourdomain.com
+```
 
-Connect to your server via FTP and upload these directories:
+`deploy.conf` is gitignored — it holds real credentials and must never be committed.
 
-**Always upload:**
-- `assets/` - CSS, JS, images
-- `kirby/` - Kirby CMS core
-- `site/` - Templates, blueprints, plugins, config
-- `index.php` - Entry point
-- `.htaccess` - Apache configuration (if using Apache)
+### Running a Deployment
 
-**First time only:**
-- `content/` - Your adventures (if not managing via Panel on server)
+```bash
+./deploy.sh
+```
 
-**Never upload:**
-- `node_modules/` - Not needed on server
-- `assets/scss/` - Source files, not needed on server
-- `.git/` - Version control, not needed on server
+This will:
+1. Run `npm run build` to produce production CSS
+2. Generate a temporary copy of `site/config/config.php` with `debug => false`,
+   `url` set to `PRODUCTION_URL`, and the license `active` flag turned on
+3. Mirror `assets/` (excluding `assets/scss/`), `kirby/`, and `site/`
+   (excluding `cache/`, `sessions/`, `accounts/`, `config.php`) to the server,
+   uploading only files that are new or changed
+4. Upload `index.php`, `.htaccess`, and the patched production `config.php`
+
+Only the files the site actually needs to run are touched on the server —
+`node_modules/`, `.git/`, `README.md`, `composer.json`, and other local-only
+files are never synced.
+
+**First deployment only:** `content/` isn't uploaded by `deploy.sh`. Upload it
+once manually via FTP, then manage content through the Panel on the server
+from then on.
 
 ### Post-Deployment Steps
 
@@ -255,10 +280,9 @@ Connect to your server via FTP and upload these directories:
 
 ### Deployment Checklist
 
-- [ ] Run `npm run build` locally
-- [ ] Set `'debug' => false` in `site/config/config.php`
-- [ ] Update `'url'` in config to your production domain
-- [ ] Upload files via FTP
+- [ ] `deploy.conf` is set up (one-time)
+- [ ] Run `./deploy.sh`
+- [ ] First deployment only: upload `content/` manually via FTP
 - [ ] Check file permissions (see below)
 - [ ] Test the site in a browser
 - [ ] Test the Panel at /panel
@@ -363,10 +387,13 @@ chmod -R 755 content/ media/ site/accounts/ site/cache/ site/sessions/
 ```bash
 # Development
 npm run dev          # Watch and rebuild CSS on changes
-php -S localhost:8000  # Start local PHP server
+php -S localhost:8000 kirby/router.php  # Start local PHP server
 
 # Build
 npm run build        # Build production CSS
+
+# Deploy
+./deploy.sh          # Build, patch config, and sync changed files to production via FTP
 
 # Git
 git status           # Check what changed
