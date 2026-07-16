@@ -30,6 +30,7 @@ class Blueprint
 	public static array $loaded = [];
 
 	protected array $fields = [];
+	protected array|null $fieldsLower = null;
 	protected ModelWithContent $model;
 	protected array $props;
 	protected array $sections = [];
@@ -124,8 +125,14 @@ class Blueprint
 				continue;
 			}
 
+			$template  = $section->template();
 			$templates = match ($section->type()) {
-				'files'  => [...$templates, $section->template() ?? 'default'],
+				'files'  => [
+					...$templates,
+					...($template
+						? [$template]
+						: App::instance()->blueprints('files'))
+				],
 				'fields' => [
 					...$templates,
 					...$this->acceptedFileTemplatesFromFields($section->fields())
@@ -360,7 +367,13 @@ class Blueprint
 	 */
 	public function field(string $name): array|null
 	{
-		return $this->fields[$name] ?? null;
+		if (isset($this->fields[$name]) === true) {
+			return $this->fields[$name];
+		}
+
+		// field objects use normalized lowercase keys
+		$this->fieldsLower ??= array_change_key_case($this->fields);
+		return $this->fieldsLower[Str::lower($name)] ?? null;
 	}
 
 	/**
@@ -668,7 +681,7 @@ class Blueprint
 
 		// set all options to false
 		if ($options === false) {
-			return array_map(fn () => false, $defaults);
+			return array_fill_keys(array_keys($defaults), false);
 		}
 
 		// extend options if possible

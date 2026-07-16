@@ -117,6 +117,17 @@ class ComposerStaticInit0bf5c8a9cfa251a218fc581ac888fe35
                 0 => __DIR__ . '/..' . '/claviska/simpleimage/src',
             ),
         ),
+        'P' =>
+        array (
+            'ParsedownExtra' =>
+            array (
+                0 => __DIR__ . '/..' . '/erusev/parsedown-extra',
+            ),
+            'Parsedown' =>
+            array (
+                0 => __DIR__ . '/..' . '/erusev/parsedown',
+            ),
+        ),
         'M' =>
         array (
             'Michelf' =>
@@ -211,6 +222,7 @@ class ComposerStaticInit0bf5c8a9cfa251a218fc581ac888fe35
         'Kirby\\Cms\\LayoutColumn' => __DIR__ . '/../..' . '/src/Cms/LayoutColumn.php',
         'Kirby\\Cms\\LayoutColumns' => __DIR__ . '/../..' . '/src/Cms/LayoutColumns.php',
         'Kirby\\Cms\\Layouts' => __DIR__ . '/../..' . '/src/Cms/Layouts.php',
+        'Kirby\\Cms\\LazyCollection' => __DIR__ . '/../..' . '/src/Cms/LazyCollection.php',
         'Kirby\\Cms\\License' => __DIR__ . '/../..' . '/src/Cms/License.php',
         'Kirby\\Cms\\LicenseStatus' => __DIR__ . '/../..' . '/src/Cms/LicenseStatus.php',
         'Kirby\\Cms\\LicenseType' => __DIR__ . '/../..' . '/src/Cms/LicenseType.php',
@@ -284,6 +296,7 @@ class ComposerStaticInit0bf5c8a9cfa251a218fc581ac888fe35
         'Kirby\\Content\\VersionRules' => __DIR__ . '/../..' . '/src/Content/VersionRules.php',
         'Kirby\\Content\\Versions' => __DIR__ . '/../..' . '/src/Content/Versions.php',
         'Kirby\\Data\\Data' => __DIR__ . '/../..' . '/src/Data/Data.php',
+        'Kirby\\Data\\Frontmatter' => __DIR__ . '/../..' . '/src/Data/Frontmatter.php',
         'Kirby\\Data\\Handler' => __DIR__ . '/../..' . '/src/Data/Handler.php',
         'Kirby\\Data\\Json' => __DIR__ . '/../..' . '/src/Data/Json.php',
         'Kirby\\Data\\PHP' => __DIR__ . '/../..' . '/src/Data/PHP.php',
@@ -352,6 +365,7 @@ class ComposerStaticInit0bf5c8a9cfa251a218fc581ac888fe35
         'Kirby\\Http\\Params' => __DIR__ . '/../..' . '/src/Http/Params.php',
         'Kirby\\Http\\Path' => __DIR__ . '/../..' . '/src/Http/Path.php',
         'Kirby\\Http\\Query' => __DIR__ . '/../..' . '/src/Http/Query.php',
+        'Kirby\\Http\\Range' => __DIR__ . '/../..' . '/src/Http/Range.php',
         'Kirby\\Http\\Remote' => __DIR__ . '/../..' . '/src/Http/Remote.php',
         'Kirby\\Http\\Request' => __DIR__ . '/../..' . '/src/Http/Request.php',
         'Kirby\\Http\\Request\\Auth' => __DIR__ . '/../..' . '/src/Http/Request/Auth.php',
@@ -368,6 +382,7 @@ class ComposerStaticInit0bf5c8a9cfa251a218fc581ac888fe35
         'Kirby\\Http\\Uri' => __DIR__ . '/../..' . '/src/Http/Uri.php',
         'Kirby\\Http\\Url' => __DIR__ . '/../..' . '/src/Http/Url.php',
         'Kirby\\Http\\Visitor' => __DIR__ . '/../..' . '/src/Http/Visitor.php',
+        'Kirby\\Http\\VolatileHeaders' => __DIR__ . '/../..' . '/src/Http/VolatileHeaders.php',
         'Kirby\\Image\\Camera' => __DIR__ . '/../..' . '/src/Image/Camera.php',
         'Kirby\\Image\\Darkroom' => __DIR__ . '/../..' . '/src/Image/Darkroom.php',
         'Kirby\\Image\\Darkroom\\GdLib' => __DIR__ . '/../..' . '/src/Image/Darkroom/GdLib.php',
@@ -515,6 +530,7 @@ class ComposerStaticInit0bf5c8a9cfa251a218fc581ac888fe35
         'Kirby\\Text\\Markdown' => __DIR__ . '/../..' . '/src/Text/Markdown.php',
         'Kirby\\Text\\SmartyPants' => __DIR__ . '/../..' . '/src/Text/SmartyPants.php',
         'Kirby\\Toolkit\\A' => __DIR__ . '/../..' . '/src/Toolkit/A.php',
+        'Kirby\\Toolkit\\BlockCollectionAccess' => __DIR__ . '/../..' . '/src/Toolkit/BlockCollectionAccess.php',
         'Kirby\\Toolkit\\Collection' => __DIR__ . '/../..' . '/src/Toolkit/Collection.php',
         'Kirby\\Toolkit\\Component' => __DIR__ . '/../..' . '/src/Toolkit/Component.php',
         'Kirby\\Toolkit\\Config' => __DIR__ . '/../..' . '/src/Toolkit/Config.php',
@@ -569,8 +585,8 @@ class ComposerStaticInit0bf5c8a9cfa251a218fc581ac888fe35
         'PHPMailer\\PHPMailer\\PHPMailer' => __DIR__ . '/..' . '/phpmailer/phpmailer/src/PHPMailer.php',
         'PHPMailer\\PHPMailer\\POP3' => __DIR__ . '/..' . '/phpmailer/phpmailer/src/POP3.php',
         'PHPMailer\\PHPMailer\\SMTP' => __DIR__ . '/..' . '/phpmailer/phpmailer/src/SMTP.php',
-        'Parsedown' => __DIR__ . '/../..' . '/dependencies/parsedown/Parsedown.php',
-        'ParsedownExtra' => __DIR__ . '/../..' . '/dependencies/parsedown-extra/ParsedownExtra.php',
+        'Parsedown' => __DIR__ . '/..' . '/erusev/parsedown/Parsedown.php',
+        'ParsedownExtra' => __DIR__ . '/..' . '/erusev/parsedown-extra/ParsedownExtra.php',
         'Psr\\Log\\AbstractLogger' => __DIR__ . '/..' . '/psr/log/src/AbstractLogger.php',
         'Psr\\Log\\InvalidArgumentException' => __DIR__ . '/..' . '/psr/log/src/InvalidArgumentException.php',
         'Psr\\Log\\LogLevel' => __DIR__ . '/..' . '/psr/log/src/LogLevel.php',
@@ -589,6 +605,7 @@ class ComposerStaticInit0bf5c8a9cfa251a218fc581ac888fe35
         'Symfony\\Component\\Yaml\\Exception\\RuntimeException' => __DIR__ . '/..' . '/symfony/yaml/Exception/RuntimeException.php',
         'Symfony\\Component\\Yaml\\Inline' => __DIR__ . '/..' . '/symfony/yaml/Inline.php',
         'Symfony\\Component\\Yaml\\Parser' => __DIR__ . '/..' . '/symfony/yaml/Parser.php',
+        'Symfony\\Component\\Yaml\\ParserState' => __DIR__ . '/..' . '/symfony/yaml/ParserState.php',
         'Symfony\\Component\\Yaml\\Tag\\TaggedValue' => __DIR__ . '/..' . '/symfony/yaml/Tag/TaggedValue.php',
         'Symfony\\Component\\Yaml\\Unescaper' => __DIR__ . '/..' . '/symfony/yaml/Unescaper.php',
         'Symfony\\Component\\Yaml\\Yaml' => __DIR__ . '/..' . '/symfony/yaml/Yaml.php',

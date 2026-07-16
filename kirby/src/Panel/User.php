@@ -100,7 +100,7 @@ class User extends Model
 		$result[] = [
 			'dialog'   => $url . '/changePassword',
 			'icon'     => 'key',
-			'text'     => I18n::translate('user.changePassword'),
+			'text'     => I18n::translate('user.' . ($this->model->hasPassword() === true ? 'changePassword' : 'setPassword')),
 			'disabled' => $this->isDisabledDropdownOption('changePassword', $options, $permissions)
 		];
 
@@ -224,11 +224,12 @@ class User extends Model
 	 */
 	public function prevNext(): array
 	{
-		$user = $this->model;
+		$user     = $this->model;
+		$siblings = $user->siblings()->filter('isListable', true);
 
 		return [
-			'next' => fn () => $this->toPrevNextLink($user->next(), 'username'),
-			'prev' => fn () => $this->toPrevNextLink($user->prev(), 'username')
+			'next' => fn () => $this->toPrevNextLink($user->next($siblings), 'username'),
+			'prev' => fn () => $this->toPrevNextLink($user->prev($siblings), 'username')
 		];
 	}
 

@@ -36,9 +36,12 @@ class F
 		'audio' => [
 			'aif',
 			'aiff',
+			'flac',
 			'm4a',
 			'midi',
 			'mp3',
+			'ogg',
+			'opus',
 			'wav',
 		],
 		'code' => [
@@ -48,6 +51,7 @@ class F
 			'java',
 			'htm',
 			'html',
+			'mjs',
 			'php',
 			'rb',
 			'py',
@@ -61,9 +65,13 @@ class F
 			'doc',
 			'docx',
 			'dotx',
+			'ics',
 			'indd',
 			'md',
 			'mdown',
+			'odc',
+			'odp',
+			'odt',
 			'pdf',
 			'ppt',
 			'pptx',
@@ -80,12 +88,15 @@ class F
 			'bmp',
 			'gif',
 			'eps',
+			'heic',
+			'heif',
 			'ico',
 			'j2k',
 			'jp2',
 			'jpeg',
 			'jpg',
 			'jpe',
+			'jxl',
 			'png',
 			'ps',
 			'psd',
@@ -98,6 +109,7 @@ class F
 			'avi',
 			'flv',
 			'm4v',
+			'mkv',
 			'mov',
 			'movie',
 			'mpe',
@@ -121,6 +133,11 @@ class F
 		'ZB',
 		'YB'
 	];
+
+	/**
+	 * Cache for loaded files when using `load()` with `cache: true`
+	 */
+	public static array $loadCache = [];
 
 	/**
 	 * Appends new content to an existing file
@@ -358,8 +375,14 @@ class F
 		string $file,
 		mixed $fallback = null,
 		array $data = [],
-		bool $allowOutput = true
+		bool $allowOutput = true,
+		bool $cache = false
 	) {
+		// return cached result if available
+		if ($cache === true && array_key_exists($file, static::$loadCache)) {
+			return static::$loadCache[$file];
+		}
+
 		if (is_file($file) === false) {
 			return $fallback;
 		}
@@ -382,6 +405,11 @@ class F
 			gettype($result) !== gettype($fallback)
 		) {
 			return $fallback;
+		}
+
+		// cache the result if requested
+		if ($cache === true) {
+			static::$loadCache[$file] = $result;
 		}
 
 		return $result;
@@ -600,6 +628,52 @@ class F
 	}
 
 	/**
+	 * Reads a specific byte range from a file
+	 * @since 5.3.0
+	 *
+	 * @param string $file The path to the file
+	 * @param int $offset The byte offset to start reading from
+	 * @param int|null $length The number of bytes to read (null = read to end)
+	 */
+	public static function range(
+		string $file,
+		int $offset = 0,
+		int|null $length = null
+	): string|false {
+		if (str_contains($file, '://') === true) {
+			return false;
+		}
+
+		// exit early on empty paths that would trigger a PHP `ValueError`
+		if ($file === '') {
+			return false;
+		}
+
+		return Helpers::handleErrors(
+			function () use ($file, $offset, $length): string|false {
+				$handle = fopen($file, 'rb');
+
+				if ($handle === false) {
+					return false; // @codeCoverageIgnore
+				}
+
+				if ($offset > 0) {
+					fseek($handle, $offset);
+				}
+
+				$content = $length !== null
+					? fread($handle, $length)
+					: fread($handle, filesize($file) - $offset);
+
+				fclose($handle);
+				return $content;
+			},
+			fn (int $errno, string $errstr): bool => str_contains($errstr, 'No such file'),
+			false
+		);
+	}
+
+	/**
 	 * Reads the content of a file or requests the
 	 * contents of a remote HTTP or HTTPS URL
 	 *
@@ -616,9 +690,9 @@ class F
 			return false;
 		}
 
-		// to increase performance, directly try to load the file without checking
-		// if it exists; fall back to a `false` return value if it doesn't exist
-		// while letting other warnings through
+		// to increase performance, directly try to load the file
+		// without checking if it exists; fall back to return `false`
+		// if it doesn't exist while letting other warnings through
 		return Helpers::handleErrors(
 			fn (): string|false => file_get_contents($file),
 			fn (int $errno, string $errstr): bool => str_contains($errstr, 'No such file'),
@@ -920,6 +994,72 @@ class F
 		}
 
 		return false;
+	}
+
+	/**
+	 * Serializes concurrent read-update-writes of a file by
+	 * holding an exclusive `flock` for the whole operation, so
+	 * that other writers (that lock the same way) cannot lose
+	 * each other's updates. The `$modifier` callback receives
+	 * the current file contents.
+	 *
+	 * @since 5.5.0
+	 */
+	public static function update(
+		string $file,
+		callable $modifier
+	): bool {
+		// ensure the parent directory exists so `fopen('c+')`
+		// can create the file if it does not yet exist
+		$dir = dirname($file);
+		if (is_dir($dir) === false) {
+			if (Dir::make($dir) === false) {
+				return false; // @codeCoverageIgnore
+			}
+		}
+
+		// `c+` opens read/write, creates the file if missing,
+		// and does NOT truncate. So we can read existing
+		// contents under the lock before rewriting.
+		$handle = @fopen($file, 'c+');
+
+		if ($handle === false) {
+			return false;
+		}
+
+		try {
+			if (flock($handle, LOCK_EX) === false) {
+				return false; // @codeCoverageIgnore
+			}
+
+			$contents = stream_get_contents($handle);
+
+			// treat an unreadable stream as empty so the
+			// modifier is always handed a string
+			if ($contents === false) {
+				$contents = ''; // @codeCoverageIgnore
+			}
+
+			$new = $modifier($contents);
+
+			// the modifier must return the new contents as a
+			// string; `null` or any other type aborts the write
+			if (is_string($new) === false) {
+				return false;
+			}
+
+			rewind($handle);
+			ftruncate($handle, 0);
+
+			if (fwrite($handle, $new) === false) {
+				return false; // @codeCoverageIgnore
+			}
+
+			return fflush($handle);
+		} finally {
+			// `fclose()` releases the `flock()` automatically
+			fclose($handle);
+		}
 	}
 
 	/**

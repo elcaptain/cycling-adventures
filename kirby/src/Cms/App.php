@@ -36,6 +36,7 @@ use Kirby\Toolkit\LazyValue;
 use Kirby\Toolkit\Locale;
 use Kirby\Toolkit\Str;
 use Kirby\Uuid\Uuid;
+use Kirby\Uuid\Uuids;
 use Throwable;
 
 /**
@@ -102,9 +103,11 @@ class App
 		$this->core   = new Core($this);
 		$this->events = new Events($this);
 
-		// start with a fresh snippet and version cache
+		// start with fresh caches
 		Snippet::$cache = [];
 		VersionCache::reset();
+		ModelPermissions::$cache = [];
+		Uuids::$enabled = null;
 
 		// register all roots to be able to load stuff afterwards
 		$this->bakeRoots($props['roots'] ?? []);
@@ -421,11 +424,21 @@ class App
 	public function contentToken(object|null $model, string $value): string
 	{
 		$default = $this->root('content');
+		$default = realpath($default) ?: $default;
 
 		if ($model !== null && method_exists($model, 'id') === true) {
 			$default .= '/' . $model->id();
 		}
 
+		// The content path is used as the default salt intentionally: there is
+		// no install step during which a random salt could be generated and
+		// persisted. Kirby goes live the moment files are present on the server,
+		// so there is no defined point at which to write a one-time secret.
+		// Config files are typically kept in version control and cannot be
+		// written by the system without causing merge conflicts. No value in
+		// $_SERVER is both universally available across hosting environments and
+		// stable enough to serve as a salt. Sites with security requirements
+		// must set the content.salt option to a secret random value.
 		$salt = $this->option('content.salt', $default);
 
 		if ($salt instanceof Closure) {
@@ -851,7 +864,7 @@ class App
 		$data['site']   ??= $data['kirby']->site();
 		$data['parent'] ??= $data['site']->page();
 
-		return (new KirbyTag($type, $value, $attr, $data, $this->options))->render();
+		return (new KirbyTag($type, $value, $attr, $data))->render();
 	}
 
 	/**
@@ -866,9 +879,10 @@ class App
 		$data['parent'] ??= $data['site']->page();
 
 		$options = $this->options;
+		$debug   = ($options['debug'] ?? false) === true;
 
 		$text = $this->apply('kirbytags:before', compact('text', 'data', 'options'));
-		$text = KirbyTags::parse($text, $data, $options);
+		$text = KirbyTags::parse($text, $data, debug: $debug);
 		$text = $this->apply('kirbytags:after', compact('text', 'data', 'options'));
 
 		return $text;
@@ -1029,7 +1043,7 @@ class App
 
 		// load the main config options
 		$root    = $this->root('config');
-		$options = F::load($root . '/config.php', [], allowOutput: false);
+		$options = F::load($root . '/config.php', [], allowOutput: false, cache: true);
 
 		// merge into one clean options array
 		return $this->options = array_replace_recursive(Config::$data, $options);
@@ -1044,7 +1058,7 @@ class App
 		$root = $this->root('config');
 
 		// first load `config/env.php` to access its `url` option
-		$envOptions = F::load($root . '/env.php', [], allowOutput: false);
+		$envOptions = F::load($root . '/env.php', [], allowOutput: false, cache: true);
 
 		// use the option from the main `config.php`,
 		// but allow the `env.php` to override it
@@ -1258,7 +1272,7 @@ class App
 		// search for a draft if the page cannot be found
 		if (!$page && $draft = $site->draft($path)) {
 			if (
-				$this->user() ||
+				($this->user() && $draft->isAccessible()) ||
 				$draft->renderVersionFromRequest() !== null
 			) {
 				$page = $draft;
@@ -1308,6 +1322,17 @@ class App
 
 		// try to resolve clean URLs to files for pages and drafts
 		if ($page = $site->findPageOrDraft($id)) {
+			// don't leak files on draft pages through clean URLs:
+			// only serve them to an authenticated user with access
+			// permission or a request with a valid preview token
+			if (
+				$page->isDraft() === true &&
+				($this->user() && $page->isAccessible()) === false &&
+				$page->renderVersionFromRequest() === null
+			) {
+				return null;
+			}
+
 			return $this->resolveFile($page->file($filename));
 		}
 

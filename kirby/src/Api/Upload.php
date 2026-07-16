@@ -34,7 +34,8 @@ readonly class Upload
 	public function __construct(
 		protected Api $api,
 		protected bool $single = true,
-		protected bool $debug = false
+		protected bool $debug = false,
+		protected string|null $template = null
 	) {
 	}
 
@@ -62,9 +63,15 @@ readonly class Upload
 	public static function chunkSize(): int
 	{
 		$max = [
-			Str::toBytes(ini_get('upload_max_filesize')),
-			Str::toBytes(ini_get('post_max_size'))
+			Str::toBytes(ini_get('upload_max_filesize'))
 		];
+
+		$postMaxSize = Str::toBytes(ini_get('post_max_size'));
+
+		// in PHP, post_max_size=0 means "no limit", so it must not be treated
+		if ($postMaxSize > 0) {
+			$max[] = $postMaxSize;
+		}
 
 		// consider cloudflare proxy limit, if detected
 		if (isset($_SERVER['HTTP_CF_CONNECTING_IP']) === true) {
@@ -179,7 +186,7 @@ readonly class Upload
 				// (incomplete chunk request will return empty $source)
 				$data = match ($source) {
 					null    => null,
-					default => $callback($source, $filename)
+					default => $callback($source, $filename, $this->template)
 				};
 
 				$uploads[$upload['name']] = match (true) {
@@ -233,7 +240,7 @@ readonly class Upload
 			tmp:      $tmpRoot,
 			total:    $total,
 			offset:   $this->api->requestHeaders('Upload-Offset'),
-			template: $this->api->requestBody('template'),
+			template: $this->template ?? $this->api->requestBody('template'),
 		);
 
 		// stream chunk content and append it to partial file
@@ -412,11 +419,12 @@ readonly class Upload
 			$postMaxSize       = Str::toBytes(ini_get('post_max_size'));
 			$uploadMaxFileSize = Str::toBytes(ini_get('upload_max_filesize'));
 
+			// in PHP, post_max_size=0 means "no limit", so it must not be treated
+			// as smaller than upload_max_filesize.
 			// @codeCoverageIgnoreStart
-			if ($postMaxSize < $uploadMaxFileSize) {
+			if ($postMaxSize > 0 && $postMaxSize < $uploadMaxFileSize) {
 				throw new Exception(
-					message:
-					I18n::translate(
+					message: I18n::translate(
 						'upload.error.iniPostSize',
 						'The uploaded file exceeds the post_max_size directive in php.ini'
 					)
@@ -425,8 +433,7 @@ readonly class Upload
 			// @codeCoverageIgnoreEnd
 
 			throw new Exception(
-				message:
-				I18n::translate(
+				message: I18n::translate(
 					'upload.error.noFiles',
 					'No files were uploaded'
 				)
