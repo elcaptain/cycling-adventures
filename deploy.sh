@@ -47,22 +47,25 @@ if diff -q site/config/config.php "$TMP_CONFIG" >/dev/null; then
 fi
 
 echo "==> Syncing changed files to ${FTP_HOST}${REMOTE_PATH}"
+# Whitelist of what the site actually needs to run — everything else
+# (tools/, node_modules/, .git, README.md, composer.json, configs, etc.)
+# is never touched on the server.
 lftp -u "${FTP_USER},${FTP_PASS}" -p "${FTP_PORT}" "${FTP_HOST}" <<EOF
 set ftp:ssl-allow true
 set ssl:verify-certificate no
 mirror --reverse --only-newer --parallel=4 --verbose \
-    --exclude-glob node_modules/ \
-    --exclude-glob .git/ \
     --exclude-glob assets/scss/ \
-    --exclude-glob content/ \
-    --exclude-glob site/cache/ \
-    --exclude-glob site/sessions/ \
-    --exclude-glob site/accounts/ \
-    --exclude-glob site/config/config.php \
-    --exclude-glob deploy.conf \
-    --exclude-glob deploy.sh \
-    --exclude-glob "*.md" \
-    ./ ${REMOTE_PATH}/
+    assets/ ${REMOTE_PATH}/assets/
+mirror --reverse --only-newer --parallel=4 --verbose \
+    kirby/ ${REMOTE_PATH}/kirby/
+mirror --reverse --only-newer --parallel=4 --verbose \
+    --exclude-glob cache/ \
+    --exclude-glob sessions/ \
+    --exclude-glob accounts/ \
+    --exclude-glob config.php \
+    site/ ${REMOTE_PATH}/site/
+put index.php -o ${REMOTE_PATH}/index.php
+put .htaccess -o ${REMOTE_PATH}/.htaccess
 put "$TMP_CONFIG" -o ${REMOTE_PATH}/site/config/config.php
 bye
 EOF
