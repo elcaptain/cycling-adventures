@@ -116,7 +116,7 @@ Kirby::plugin('cycling/adventure-helpers', [
         'gpxDataAll' => function() {
             $page = $this;
             return gpxDataAllMemo($this->id(), function() use ($page) {
-                $gpxFiles = $page->files()->filterBy('extension', 'gpx');
+                $gpxFiles = $page->gpxfile()->toFiles();
                 if ($gpxFiles->count() === 0) {
                     return [];
                 }
