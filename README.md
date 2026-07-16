@@ -168,54 +168,6 @@ npm run build
 
 This creates minified CSS in `assets/css/style.css`.
 
-## Version Control with Git
-
-### Initial Commit
-
-The project is already initialized with Git. Make your first commit:
-
-```bash
-git add .
-git commit -m "Initial commit: Cycling Adventures blog setup"
-```
-
-### Connect to GitHub
-
-1. Create a new repository on GitHub (free plan)
-2. Don't initialize it with README (we already have one)
-3. Connect your local repo:
-
-```bash
-git remote add origin https://github.com/YOUR-USERNAME/cycling-adventures.git
-git branch -M main
-git push -u origin main
-```
-
-### What's in Git?
-
-The `.gitignore` file excludes:
-- `content/` - Your adventures (managed via Panel)
-- `node_modules/` - Node dependencies
-- `assets/css/style.css` - Compiled CSS
-- `media/` - Generated thumbnails
-- `site/accounts/` - User accounts
-- `site/sessions/` - Session data
-- `site/cache/` - Cache files
-
-**Why exclude content?**
-Content is managed through the Kirby Panel and deployed via FTP. This keeps your Git repo focused on code, not content files.
-
-If you prefer to version control content, remove the `/content/*` lines from `.gitignore`.
-
-### Regular Workflow
-
-```bash
-# Make changes to code/templates
-git add .
-git commit -m "Description of changes"
-git push
-```
-
 ## Deployment via FTP
 
 Deployment is handled by `deploy.sh`, which builds the CSS, patches a copy of
