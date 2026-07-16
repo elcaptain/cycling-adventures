@@ -79,7 +79,7 @@ $elevationJson = esc(json_encode($elevationProfile), 'attr');
     </div>
 
     <?php if ($page->description()->isNotEmpty()): ?>
-        <p class="text-xl text-accent-700 mt-6">
+        <p class="text-xl mt-6">
             <?= $page->description() ?>
         </p>
     <?php endif ?>
