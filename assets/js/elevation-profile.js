@@ -81,6 +81,26 @@
         var maxDistance = elevationProfile[elevationProfile.length - 1].distance;
         var ctx = canvas.getContext('2d');
 
+        // Enforce a minimum vertical span so shallow-elevation routes don't get
+        // visually exaggerated by Chart.js auto-scaling tightly around the data.
+        var allElevations = elevationProfile.map(function(p) { return p.elevation; });
+        var actualMin = Math.min.apply(null, allElevations);
+        var actualMax = Math.max.apply(null, allElevations);
+        var MIN_ELEVATION_SPAN = 300;
+        var elevationSpan = actualMax - actualMin;
+        var yMin, yMax;
+        if (elevationSpan < MIN_ELEVATION_SPAN) {
+            var center = (actualMax + actualMin) / 2;
+            yMin = center - MIN_ELEVATION_SPAN / 2;
+            yMax = center + MIN_ELEVATION_SPAN / 2;
+        } else {
+            var elevationPad = elevationSpan * 0.1;
+            yMin = actualMin - elevationPad;
+            yMax = actualMax + elevationPad;
+        }
+        yMin = Math.floor(yMin / 10) * 10;
+        yMax = Math.ceil(yMax / 10) * 10;
+
         // Build one Chart.js dataset per track.
         // pointIndex is stored on each data point so we can reverse-look up the trackpoint.
         var datasets = trackIndices.map(function(ti) {
@@ -175,6 +195,8 @@
                         }
                     },
                     y: {
+                        min: yMin,
+                        max: yMax,
                         title: {
                             display: true,
                             text: 'Elevation (m)',
