@@ -236,9 +236,21 @@ function formatCollectionDuration(int $seconds): string {
                             break;
                         }
                         if ($block->type() === 'text') {
-                            $paragraphs = preg_split('/\n\s*\n/', trim((string) $block->text()));
-                            $firstParagraphHtml = '<div class="prose prose-sm max-w-none mb-2">' . kirbytext(trim($paragraphs[0])) . '</div>';
-                            if (count($paragraphs) > 1 || $index < $layoutBlocks->count() - 1) {
+                            $rawText = trim((string) $block->text());
+
+                            // Text blocks store HTML from the Writer field (<p>...</p> back
+                            // to back, no blank lines), so split on paragraph tags first and
+                            // only fall back to blank-line splitting for plain Kirbytext.
+                            if (preg_match_all('/<p[^>]*>.*?<\/p>/is', $rawText, $matches) && count($matches[0]) > 0) {
+                                $firstParagraphHtml = '<div class="prose prose-sm max-w-none mb-2">' . $matches[0][0] . '</div>';
+                                $hasMoreParagraphs  = count($matches[0]) > 1;
+                            } else {
+                                $paragraphs = preg_split('/\n\s*\n/', $rawText);
+                                $firstParagraphHtml = '<div class="prose prose-sm max-w-none mb-2">' . kirbytext(trim($paragraphs[0])) . '</div>';
+                                $hasMoreParagraphs  = count($paragraphs) > 1;
+                            }
+
+                            if ($hasMoreParagraphs || $index < $layoutBlocks->count() - 1) {
                                 $hasMoreContent = true;
                             }
                             break;
