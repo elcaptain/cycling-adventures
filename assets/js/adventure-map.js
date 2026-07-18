@@ -64,7 +64,7 @@
             return;
         }
 
-        var map = L.map('adventure-map', { zoomControl: false });
+        var map = L.map('adventure-map', { zoomControl: false, zoomSnap: 0.25 });
 
         L.tileLayer('https://api.maptiler.com/maps/landscape-v4/{z}/{x}/{y}.png?key=sNKRl7DPdDNCUS9KExvS', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
