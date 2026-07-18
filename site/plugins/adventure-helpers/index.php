@@ -12,7 +12,18 @@
 Kirby::plugin('cycling/adventure-helpers', [
     'pageMethods' => [
         'permalinkUrl' => function () {
-            return url('adventures/' . $this->num() . '-' . $this->slug());
+            $prefix = $this->num() !== null ? $this->num() . '-' : '';
+            return url('adventures/' . $prefix . $this->slug());
+        },
+
+        /**
+         * Find the collection page (if any) that lists this page in its "routes" field
+         */
+        'parentCollection' => function () {
+            $page = $this;
+            return $this->siblings()->filterBy('intendedTemplate', 'collection')->filter(function ($collection) use ($page) {
+                return $collection->routes()->toPages()->has($page);
+            })->first();
         },
 
         /**

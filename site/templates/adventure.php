@@ -62,10 +62,17 @@ $elevationJson = esc(json_encode($elevationProfile), 'attr');
 <?php else: ?>
 <div class="max-w-4xl mx-auto mb-12">
 <?php endif ?>
+    <?php $parentCollection = $page->parentCollection() ?>
     <div class="mb-4">
+        <?php if ($parentCollection): ?>
+        <a href="<?= $parentCollection->permalinkUrl() ?>" class="text-accent-600 hover:underline">
+            &larr; Back to <?= $parentCollection->title() ?>
+        </a>
+        <?php else: ?>
         <a href="<?= $site->url() ?>" class="text-accent-600 hover:underline">
             &larr; Back to all adventures
         </a>
+        <?php endif ?>
     </div>
 
     <h1 class="text-4xl md:text-5xl font-bold mb-4">

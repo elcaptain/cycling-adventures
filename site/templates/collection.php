@@ -195,7 +195,9 @@ function formatCollectionDuration(int $seconds): string {
         >
             <!-- Route title and date -->
             <h2 class="font-display text-2xl font-bold mb-1 text-accent-900">
-                <?= $routePage->title() ?>
+                <a href="<?= $routePage->permalinkUrl() ?>" class="hover:text-accent-500 transition-colors">
+                    <?= $routePage->title() ?>
+                </a>
             </h2>
 
             <!-- Route stats -->
@@ -218,26 +220,39 @@ function formatCollectionDuration(int $seconds): string {
             <time class="text-sm text-accent-600" datetime="<?= $routePage->date()->toDate('Y-m-d') ?>">
                 <?= $routePage->date()->toDate('F j, Y') ?>
             </time>
-            <!-- Description -->
-            <?php if ($routePage->description()->isNotEmpty()): ?>
-            <p class="text-accent-800 mb-4">
-                <?= $routePage->description() ?>
-            </p>
-            <?php endif ?>
+            <!-- First paragraph of content only; rest lives on the route's own page -->
+            <?php
+                $firstParagraphHtml = null;
+                $hasMoreContent = false;
 
-            <!-- Text and heading blocks only (images go in the photo strip) -->
-            <?php if ($routePage->layout()->isNotEmpty()): ?>
-            <div class="prose prose-sm max-w-none mb-4">
-                <?php foreach ($routePage->layout()->toBlocks() as $block): ?>
-                    <?php if ($block->type() === 'heading'): ?>
-                        <<?= $block->level() ?> class="font-bold mt-3 mb-1">
-                            <?= $block->text() ?>
-                        </<?= $block->level() ?>>
-                    <?php elseif ($block->type() === 'text'): ?>
-                        <div><?= $block->text()->kirbytext() ?></div>
-                    <?php endif ?>
-                <?php endforeach ?>
-            </div>
+                if ($routePage->description()->isNotEmpty()) {
+                    $firstParagraphHtml = '<p class="text-accent-800 mb-2">' . $routePage->description()->esc() . '</p>';
+                    $hasMoreContent = $routePage->layout()->isNotEmpty();
+                } elseif ($routePage->layout()->isNotEmpty()) {
+                    $layoutBlocks = $routePage->layout()->toBlocks();
+                    foreach ($layoutBlocks as $index => $block) {
+                        if ($block->type() === 'heading') {
+                            $hasMoreContent = true;
+                            break;
+                        }
+                        if ($block->type() === 'text') {
+                            $paragraphs = preg_split('/\n\s*\n/', trim((string) $block->text()));
+                            $firstParagraphHtml = '<div class="prose prose-sm max-w-none mb-2">' . kirbytext(trim($paragraphs[0])) . '</div>';
+                            if (count($paragraphs) > 1 || $index < $layoutBlocks->count() - 1) {
+                                $hasMoreContent = true;
+                            }
+                            break;
+                        }
+                    }
+                }
+            ?>
+            <?php if ($firstParagraphHtml): ?>
+                <?= $firstParagraphHtml ?>
+            <?php endif ?>
+            <?php if ($hasMoreContent): ?>
+            <a href="<?= $routePage->permalinkUrl() ?>" class="read-more-link inline-block mb-4 text-sm font-semibold text-accent-600 hover:text-accent-500 transition-colors">
+                Read more &rarr;
+            </a>
             <?php endif ?>
 
             <!-- Horizontal photo strip -->
