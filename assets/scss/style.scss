@@ -216,6 +216,12 @@
   }
 }
 
+.daystats-block[data-track-index] {
+  &:hover .daystats-heading {
+    color: var(--track-color, theme('colors.accent.500'));
+  }
+}
+
 .daystats-heading {
   @apply font-display text-3xl font-bold flex-shrink-0 text-accent-900;
   line-height: 36px;

@@ -54,6 +54,15 @@ foreach ($tracks as $track) {
 $tracksJson    = esc(json_encode($tracks), 'attr');
 $photosJson    = esc(json_encode($matchedPhotos), 'attr');
 $elevationJson = esc(json_encode($elevationProfile), 'attr');
+
+// Map each GPX filename to its global track index (same order as gpxDataAll())
+// so daystats blocks can be linked back to their map polyline for hover-highlighting.
+$gpxFilenameToIndex = [];
+$gpxFileIndex = 0;
+foreach ($page->gpxfile()->toFiles() as $gpxFile) {
+    $gpxFilenameToIndex[$gpxFile->filename()] = $gpxFileIndex;
+    $gpxFileIndex++;
+}
 ?>
 
 <!-- Adventure Header -->
@@ -257,8 +266,22 @@ $elevationJson = esc(json_encode($elevationProfile), 'attr');
                     $blockStats   = $blockGpxData ? $blockGpxData['stats'] : null;
                     $bLevel = in_array($block->level()->value(), ['h2', 'h3', 'h4'])
                                 ? $block->level()->value() : 'h2';
+
+                    $blockTrackIndex = $blockGpxFile ? ($gpxFilenameToIndex[$blockGpxFile->filename()] ?? null) : null;
+                    $blockTrack      = null;
+                    if ($blockTrackIndex !== null) {
+                        foreach ($tracks as $t) {
+                            if ($t['index'] === $blockTrackIndex) { $blockTrack = $t; break; }
+                        }
+                    }
                 ?>
-                <div class="daystats-block">
+                <div
+                    class="daystats-block"
+                    <?php if ($blockTrack): ?>
+                    data-track-index="<?= $blockTrackIndex ?>"
+                    style="--track-color: <?= $blockTrack['color'] ?>"
+                    <?php endif ?>
+                >
                     <?php if ($block->text()->isNotEmpty()): ?>
                     <<?= $bLevel ?> class="daystats-heading">
                         <?= $block->text() ?>

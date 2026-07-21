@@ -84,6 +84,7 @@
         }
 
         fitMapToTracks(map, tracks);
+        bindDaystatsHover();
 
         // Store references for use in the mapHover listener below
         _map    = map;
@@ -127,6 +128,26 @@
             if (!_map.hasLayer(_hoverMarker)) _hoverMarker.addTo(_map);
 
             _suppressElevationHover = false;
+        });
+    }
+
+    /**
+     * Hovering a daystats block (ride stats for one day) highlights its
+     * corresponding track on the map, reusing the same dim/highlight
+     * mechanism collection-cards.js uses for route card hover.
+     */
+    function bindDaystatsHover() {
+        var blocks = document.querySelectorAll('.daystats-block[data-track-index]');
+        blocks.forEach(function(block) {
+            var trackIndex = parseInt(block.dataset.trackIndex, 10);
+            if (isNaN(trackIndex)) return;
+
+            block.addEventListener('mouseenter', function() {
+                window.adventureMap.highlightTrackRange(trackIndex, 1, true);
+            });
+            block.addEventListener('mouseleave', function() {
+                window.adventureMap.highlightTrackRange(trackIndex, 1, false);
+            });
         });
     }
 
