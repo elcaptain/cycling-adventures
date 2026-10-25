@@ -168,7 +168,8 @@ return [
                 $page = page('adventures')->children()
                     ->filter(fn($p) => (string)$p->num() === $num)
                     ->first();
-                return $page ?? page('error');
+                // fall through to Kirby's router (handles drafts + preview tokens)
+                return $page ?? $this->next();
             }
         ],
         // Permalink without slug: /adventures/28
@@ -178,7 +179,8 @@ return [
                 $page = page('adventures')->children()
                     ->filter(fn($p) => (string)$p->num() === $num)
                     ->first();
-                return $page ?? page('error');
+                // fall through to Kirby's router (handles drafts + preview tokens)
+                return $page ?? $this->next();
             }
         ],
         // Legacy slug-only URLs for backwards compatibility
@@ -188,7 +190,9 @@ return [
                 if ($page = page('adventures/' . $uid)) {
                     return $page;
                 }
-                return page('error');
+                // page() skips drafts; let Kirby's router resolve them so
+                // Panel previews (?_token=…&_version=…) work
+                $this->next();
             }
         ]
     ],
