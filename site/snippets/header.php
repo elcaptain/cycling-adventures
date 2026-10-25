@@ -34,6 +34,7 @@
             <nav class="flex items-center justify-between">
                 <a href="<?= $site->url() ?>" class="font-display text-2xl font-bold text-accent-500 hover:text-accent-700 transition-colors no-underline">
                     <?= $site->title() ?>
+                    <img src="<?= url('assets/img/pedalades-logo.svg') ?>" alt="logo">
                 </a>
             </nav>
         </div>
