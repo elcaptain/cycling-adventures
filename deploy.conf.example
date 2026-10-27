@@ -10,5 +10,3 @@ FTP_PORT=21
 # Path on the server that maps to the site root (index.php lives here)
 REMOTE_PATH=/httpdocs
 
-# Production URL, written into site/config/config.php for the upload only
-PRODUCTION_URL=https://www.example.com

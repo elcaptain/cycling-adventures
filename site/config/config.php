@@ -2,6 +2,10 @@
 
 ini_set('memory_limit', '256M');
 
+// Local = PHP's built-in dev server (php -S … kirby/router.php) or CLI tools;
+// anything else (the hosting webserver) gets production settings
+$local = in_array(PHP_SAPI, ['cli-server', 'cli'], true);
+
 /**
  * Cycling Adventures Blog Configuration
  *
@@ -120,12 +124,11 @@ return [
             return $kirby->nativeComponent('file::type')($kirby, $extension);
         }
     ],
-    // Enable debug mode during development
-    // Set to false in production!
-    'debug' => true,
+    // Debug output only during local development
+    'debug' => $local,
 
     // Basic site settings
-    'url' => 'http://jrmacbook.local:8000', // Change this to your production URL
+    'url' => $local ? 'http://jrmacbook.local:8000' : 'https://pedalades.jonashoffmann.eu',
 
     // Panel settings (admin interface)
     'panel' => [
@@ -240,7 +243,7 @@ return [
     // Cache settings (enable in production for better performance)
     'cache' => [
         'pages' => [
-            'active' => false, // Set to true in production
+            'active' => !$local,
             'ignore' => function ($page) {
                 // Don't cache the panel
                 return $page->kirby()->user() !== null;
