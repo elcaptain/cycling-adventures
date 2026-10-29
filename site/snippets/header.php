@@ -5,11 +5,65 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $page->title() ?> | <?= $site->title() ?></title>
 
+    <?php
+    // Share metadata: same description and cover fallbacks as the cards
+    $isPost        = in_array($page->template()->name(), ['adventure', 'collection']);
+    $metaTitle     = $page->isHomePage() ? $site->title()->value() : $page->title()->value();
+    $metaDesc      = null;
+    $metaImage     = null;
+
+    if ($page->description()->isNotEmpty()) {
+        $metaDesc = $page->description()->kirbytext()->value();
+    } elseif ($page->intro()->isNotEmpty()) {
+        $metaDesc = $page->intro()->kirbytext()->value();
+    } elseif ($page->layout()->isNotEmpty()) {
+        foreach ($page->layout()->toBlocks() as $block) {
+            if ($block->type() === 'text' && $block->text()->isNotEmpty()) {
+                $metaDesc = $block->text()->kirbytext()->value();
+                break;
+            }
+        }
+    }
+    $metaDesc = $metaDesc ? Str::excerpt($metaDesc, 200) : null;
+
+    if ($isPost) {
+        $metaImage = $page->coverimage()->toFiles()->first() ?? $page->images()->first();
+        if (!$metaImage && $page->template()->name() === 'collection') {
+            foreach ($page->routes()->toPages() as $routePage) {
+                $metaImage = $routePage->coverimage()->toFiles()->first() ?? $routePage->images()->first();
+                if ($metaImage) break;
+            }
+        }
+    }
+    ?>
+
     <!-- Meta description -->
-    <?php if ($page->description()->isNotEmpty()): ?>
-    <meta name="description" content="<?= $page->description() ?>">
+    <?php if ($metaDesc): ?>
+    <meta name="description" content="<?= esc($metaDesc) ?>">
     <?php endif ?>
-    
+
+    <!-- Open Graph / social sharing -->
+    <meta property="og:site_name" content="<?= esc($site->title()->value()) ?>">
+    <meta property="og:title" content="<?= esc($metaTitle) ?>">
+    <meta property="og:type" content="<?= $isPost ? 'article' : 'website' ?>">
+    <meta property="og:url" content="<?= esc($page->url()) ?>">
+    <?php if ($metaDesc): ?>
+    <meta property="og:description" content="<?= esc($metaDesc) ?>">
+    <?php endif ?>
+    <?php if ($isPost && $page->date()->isNotEmpty()): ?>
+    <meta property="article:published_time" content="<?= $page->date()->toDate('Y-m-d') ?>">
+    <?php endif ?>
+    <?php if ($metaImage): ?>
+    <?php $ogImage = $metaImage->crop(1200, 630) ?>
+    <meta property="og:image" content="<?= esc($ogImage->url()) ?>">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="<?= esc($metaImage->alt()->or($metaTitle)->value()) ?>">
+    <meta name="twitter:card" content="summary_large_image">
+    <?php else: ?>
+    <meta name="twitter:card" content="summary">
+    <?php endif ?>
+
     <?php if (in_array($page->template()->name(), ['adventure', 'collection'])): ?>
     <!-- Leaflet CSS (for maps) -->
     <link rel="stylesheet" href="<?= url('assets/js/vendor/leaflet/leaflet.css') ?>">
