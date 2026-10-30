@@ -26,6 +26,16 @@
     }
     $metaDesc = $metaDesc ? Str::excerpt($metaDesc, 200) : null;
 
+    // Posts without any text: describe the ride by its stats instead
+    if (!$metaDesc && $isPost) {
+        $facts = [];
+        if ($page->date()->isNotEmpty())      $facts[] = $page->date()->toDate('j F Y');
+        if ($page->distance()->isNotEmpty())  $facts[] = number_format((float)$page->distance()->value(), 1) . ' km';
+        if ($page->elevation()->isNotEmpty()) $facts[] = number_format((float)$page->elevation()->value(), 0, '.', ',') . ' m elevation';
+        if ($page->movingtime()->isNotEmpty()) $facts[] = $page->movingtime()->value() . ' moving';
+        $metaDesc = $facts ? 'Bike ride · ' . implode(' · ', $facts) : null;
+    }
+
     if ($isPost) {
         $metaImage = $page->coverimage()->toFiles()->first() ?? $page->images()->first();
         if (!$metaImage && $page->template()->name() === 'collection') {
@@ -54,7 +64,8 @@
     <meta property="article:published_time" content="<?= $page->date()->toDate('Y-m-d') ?>">
     <?php endif ?>
     <?php if ($metaImage): ?>
-    <?php $ogImage = $metaImage->crop(1200, 630) ?>
+    <?php // quality 70 keeps it under WhatsApp's ~300 KB preview limit ?>
+    <?php $ogImage = $metaImage->crop(1200, 630, ['quality' => 70]) ?>
     <meta property="og:image" content="<?= esc($ogImage->url()) ?>">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
