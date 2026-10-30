@@ -19,6 +19,7 @@
     <!-- Custom JS -->
     <script src="<?= url('assets/js/adventure-map.js') ?>"></script>
     <script src="<?= url('assets/js/elevation-profile.js') ?>"></script>
+    <script src="<?= url('assets/js/lightbox.js') ?>"></script>
     <?php endif ?>
 
     <?php if ($page->template()->name() === 'collection'): ?>
@@ -31,6 +32,7 @@
     <!-- Custom JS (elevation-profile.js is intentionally excluded — collection-cards.js handles per-card charts) -->
     <script src="<?= url('assets/js/adventure-map.js') ?>"></script>
     <script src="<?= url('assets/js/collection-cards.js') ?>"></script>
+    <script src="<?= url('assets/js/lightbox.js') ?>"></script>
     <?php endif ?>
 
 </body>

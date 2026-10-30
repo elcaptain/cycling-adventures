@@ -281,6 +281,7 @@ function formatCollectionDuration(int $seconds): string {
                     alt="<?= $photoFile->alt() ?>"
                     class="h-32 w-auto flex-shrink-0 rounded-md object-cover"
                     loading="lazy"
+                    <?php snippet('lightbox-attrs', ['image' => $photoFile]) ?>
                     <?php if ($photoGps): ?>data-photo-lat="<?= $photoGps['lat'] ?>" data-photo-lon="<?= $photoGps['lon'] ?>"<?php endif ?>
                 >
                 <?php elseif ($photoUrl): ?>

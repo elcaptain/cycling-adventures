@@ -417,3 +417,149 @@
     }
   }
 }
+
+// Lightbox (assets/js/lightbox.js)
+.lightbox-trigger {
+  cursor: zoom-in;
+
+  &:focus-visible {
+    outline: 3px solid theme('colors.accent.500');
+    outline-offset: 2px;
+  }
+}
+
+html.lightbox-open {
+  overflow: hidden;
+
+  body {
+    overflow: hidden;
+    touch-action: none;
+  }
+}
+
+.lightbox {
+  --lightbox-backdrop: 1;
+  position: fixed;
+  inset: 0;
+  z-index: 10000; // above Leaflet panes/controls
+  background: rgba(10, 10, 10, var(--lightbox-backdrop));
+  color: #fff;
+  animation: lightbox-fade 0.2s ease-out;
+
+  &[hidden] { display: none; }
+}
+
+@keyframes lightbox-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.lightbox-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  // leave room for the top bar and caption
+  padding: 56px 12px calc(56px + env(safe-area-inset-bottom));
+  touch-action: none;
+
+  @screen md { padding: 64px 80px; }
+}
+
+.lightbox-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+
+  .lightbox.is-loading & { opacity: 0.4; }
+}
+
+.lightbox-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(8px + env(safe-area-inset-top)) 8px 8px 16px;
+  pointer-events: none;
+
+  > * { pointer-events: auto; }
+}
+
+.lightbox-counter {
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
+}
+
+.lightbox-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  transition: background 0.15s;
+
+  &:hover { background: rgba(255, 255, 255, 0.25); }
+
+  &:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+
+  &[hidden] { display: none; }
+
+  svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+.lightbox-prev,
+.lightbox-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+
+  // on touch screens swiping does the job; keep the arrows small and out of the way
+  @media (hover: none) {
+    top: auto;
+    bottom: calc(8px + env(safe-area-inset-bottom));
+    transform: none;
+  }
+}
+
+.lightbox-prev { left: 12px; }
+.lightbox-next { right: 12px; }
+
+.lightbox-caption {
+  position: absolute;
+  left: 64px;
+  right: 64px;
+  bottom: calc(8px + env(safe-area-inset-bottom));
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  opacity: 0.9;
+
+  &[hidden] { display: none; }
+}

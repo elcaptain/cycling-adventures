@@ -230,6 +230,7 @@ foreach ($page->gpxfile()->toFiles() as $gpxFile) {
                             alt="<?= $block->alt() ?>"
                             class="w-full rounded-sm shadow-lg"
                             data-photo-filename="<?= $image->filename() ?>"
+                            <?php snippet('lightbox-attrs', ['image' => $image, 'caption' => $block->caption()->value()]) ?>
                         >
                         <?php if ($block->caption()->isNotEmpty()): ?>
                             <figcaption class="text-sm text-accent-700 mt-2 text-center">
@@ -252,6 +253,7 @@ foreach ($page->gpxfile()->toFiles() as $gpxFile) {
                                     alt="<?= $image->alt() ?>"
                                     class="photo-gallery-image"
                                     data-photo-filename="<?= $image->filename() ?>"
+                                    <?php snippet('lightbox-attrs', ['image' => $image]) ?>
                                 >
                             </div>
                         <?php endforeach ?>
@@ -347,6 +349,7 @@ foreach ($page->gpxfile()->toFiles() as $gpxFile) {
                     alt="<?= $image->alt() ?>"
                     class="photo-gallery-image"
                     data-photo-filename="<?= $image->filename() ?>"
+                    <?php snippet('lightbox-attrs', ['image' => $image]) ?>
                 >
             </div>
         <?php endforeach ?>
